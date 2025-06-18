@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block extra_head %}
+<style>
+    .login-card-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        margin-bottom: 200px;
+    }
+    .password-wrapper {
+        position: relative;
+        width: 411px;
+    }
+    .error-message {
+        color: #AF3E3E;
+        font-size: 0.875rem;
+        margin-top: 4px;
+        display: none;
+    }
+    .input-error {
+        border: 1px solid #AF3E3E !important;
+    }
+    /* Updated styles for proper eye icon positioning */
+    .form-control {
+        padding-right: 40px !important; /* Ensure space for eye icon */
+    }
+    .toggle-password {
+        position: absolute;
+        right: 12px;
+        top: 38px; /* Adjusted to account for label */
+        transform: none; /* Removed translateY */
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        outline: none;
+        height: 24px;
+        width: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .toggle-password i {
+        color: #888;
+        font-size: 18px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-card-wrapper">
+    <div class="card shadow"
+         style="width: 527px; height: 332px; background: #C7DB9C; border-radius: 20px; border: none; display: flex; justify-content: center;">
+        <div class="card-body d-flex flex-column justify-content-center align-items-center">
+            <form style="width: 100%; max-width: 411px;" method="post" id="loginForm">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label for="email" class="form-label" style="font-weight: 500; margin-bottom: 4px;">Email</label>
+                    <input type="email" class="form-control"
+                           id="email" name="email"
+                           placeholder="Enter your email"
+                           style="width: 411px; height: 46px; background: #F6F0F0; border-radius: 10px; border: none; font-size: 1rem;">
+                    <div id="email-error" class="error-message">You have entered a wrong email</div>
+                </div>
+                <div class="mb-4 password-wrapper">
+                    <label for="password" class="form-label" style="font-weight: 500; margin-bottom: 4px;">Password</label>
+                    <input type="password" class="form-control"
+                           id="password" name="password"
+                           placeholder="Enter your password"
+                           style="width: 411px; height: 46px; background: #F6F0F0; border-radius: 10px; border: none; font-size: 1rem;">
+                    <button type="button"
+                        class="toggle-password"
+                        onclick="togglePassword()"
+                        tabindex="-1">
+                        <i id="eyeIcon" class="fa-solid fa-eye-slash"></i>
+                    </button>
+                    <div id="password-error" class="error-message">You have entered the wrong password</div>
+                </div>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary" style="height: 46px; border-radius: 10px; font-weight: 600;">Login</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function togglePassword() {
+    const pwd = document.getElementById('password');
+    const eyeIcon = document.getElementById('eyeIcon');
+    if (pwd.type === "password") {
+        pwd.type = "text";
+        eyeIcon.classList.remove('fa-eye-slash');
+        eyeIcon.classList.add('fa-eye');
+    } else {
+        pwd.type = "password";
+        eyeIcon.classList.remove('fa-eye');
+        eyeIcon.classList.add('fa-eye-slash');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const emailField = document.getElementById('email');
+    const passwordField = document.getElementById('password');
+    const loginForm = document.getElementById('loginForm');
+    const emailError = document.getElementById('email-error');
+    const passwordError = document.getElementById('password-error');
+
+    // Simple email validation regex
+    function validateEmail(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+    }
+
+    // Simple password validation (just checking length for demo)
+    function validatePassword(password) {
+        return password.length >= 6;
+    }
+
+    // Handle Enter key in email field
+    emailField.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (!validateEmail(emailField.value)) {
+                emailField.classList.add('input-error');
+                emailError.style.display = 'block';
+            } else {
+                emailField.classList.remove('input-error');
+                emailError.style.display = 'none';
+                passwordField.focus();
+            }
+        }
+    });
+
+    // Handle email field blur
+    emailField.addEventListener('blur', function() {
+        if (emailField.value && !validateEmail(emailField.value)) {
+            emailField.classList.add('input-error');
+            emailError.style.display = 'block';
+        } else {
+            emailField.classList.remove('input-error');
+            emailError.style.display = 'none';
+        }
+    });
+
+    // Handle Enter key in password field
+    passwordField.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (!validatePassword(passwordField.value)) {
+                passwordField.classList.add('input-error');
+                passwordError.style.display = 'block';
+            } else {
+                passwordField.classList.remove('input-error');
+                passwordError.style.display = 'none';
+                loginForm.submit();
+            }
+        }
+    });
+
+    // Handle password field blur
+    passwordField.addEventListener('blur', function() {
+        if (passwordField.value && !validatePassword(passwordField.value)) {
+            passwordField.classList.add('input-error');
+            passwordError.style.display = 'block';
+        } else {
+            passwordField.classList.remove('input-error');
+            passwordError.style.display = 'none';
+        }
+    });
+
+    // Handle form submission
+    loginForm.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        // Validate email
+        if (!validateEmail(emailField.value)) {
+            emailField.classList.add('input-error');
+            emailError.style.display = 'block';
+            isValid = false;
+        }
+        
+        // Validate password
+        if (!validatePassword(passwordField.value)) {
+            passwordField.classList.add('input-error');
+            passwordError.style.display = 'block';
+            isValid = false;
+        }
+        
+        if (!isValid) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}
