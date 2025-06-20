@@ -3,424 +3,423 @@
 {% block title %}Viewer{% endblock %}
 {% block extra_head %}
 <style>
-   .bmc-preview-card {
-      width: 180px;
-      height: 220px;
-      background: #fff;
-      border-radius: 18px;
-      box-shadow: 0 2px 8px rgba(7,91,94,0.10);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 12px;
-      border: 2px dashed #b5b5b5;
-      color: #b5b5b5;
-      font-size: 0.95rem;
-      font-weight: 500;
-      text-align: center;
-      overflow: hidden;
-      position: relative;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-   }
-   .bmc-preview-card:hover {
-      transform: scale(1.05);
-      box-shadow: 0 4px 16px rgba(7,91,94,0.20);
-   }
-   .bmc-preview-pdf {
-      width: 100%;
-      height: 100%;
-      border: none;
-      background: #fff;
-      display: block;
-      border-radius: 16px;
-   }
-   .bmc-preview-placeholder {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #b5b5b5;
-      font-size: 0.95rem;
-      font-weight: 500;
-      background: #fff;
-      border-radius: 16px;
-      z-index: 1;
-   }
-   .pdf-viewer-container {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-   }
-   .pdf-view-button {
-      background: #075B5E;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 8px 16px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      text-decoration: none;
-      display: inline-block;
-      margin-top: 8px;
-   }
-   .pdf-view-button:hover {
-      background: #0a7c80;
-      transform: translateY(-2px);
-      box-shadow: 0 2px 8px rgba(7,91,94,0.20);
-   }
-   .aside-card {
-      background: #C1DBB3;
-      border-radius: 20px;
-      width: 350px;
-      padding: 32px 0;
-      margin: 10px 0 10px 20px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-   }
-   .aside-item {
-      background: #F2C078;
-      border-radius: 12px;
-      margin: 12px 24px;
-      padding: 18px 24px;
-      font-weight: 400;
-      font-size: 1.1rem;
-      color: #333;
-      transition: transform 0.2s;
-      cursor: pointer;
-      text-align: left;
-      letter-spacing: 0.5px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: relative;
-   }
-   .aside-item:hover {
-      transform: scale(1.07);
-      z-index: 1;
-   }
-   .dropdown-icon {
-      margin-left: 10px;
-      font-size: 1.1rem;
-      transition: transform 0.2s;
-   }
-   .aside-subitems {
-      opacity: 0;
-      max-height: 0;
-      overflow: hidden;
-      flex-direction: column;
-      margin-left: 36px;
-      margin-right: 24px;
-      margin-top: 4px;
-      transition: opacity 0.3s, max-height 0.3s;
-      display: flex;
-      pointer-events: none;
-   }
-   .aside-subitem {
-      background: #F2C078;
-      border-radius: 10px;
-      margin: 6px 0;
-      padding: 12px 18px;
-      font-size: 1rem;
-      color: #444;
-      font-weight: 400;
-      cursor: pointer;
-      transition: transform 0.2s;
-   }
-   .aside-subitem:hover {
-      transform: scale(1.05);
-      z-index: 1;
-   }
-   .aside-item.open .dropdown-icon {
-      transform: rotate(90deg);
-   }
-   .aside-item.open + .aside-subitems {
-      opacity: 1;
-      max-height: 400px;
-      pointer-events: auto;
-   }
-   /* Profile Card Styles */
-   .profile-banner-card {
-      background: #C1DBB3;
-      border-radius: 20px;
-      margin: 20px;
-      width: calc(100% - 40px);
-      box-sizing: border-box;
-      display: flex;
-      align-items: center;
-      padding: 16px 24px;
-      position: relative;
-      min-height: 110px;
-   }
-   .profile-picture {
-      width: 64px;
-      height: 64px;
-      border-radius: 50%;
-      background: #096B68;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 2rem;
-      margin: 0 18px 0 0;
-      padding: 0;
-      overflow: hidden;
-      position: relative;
-      align-self: center;
-   }
-   .profile-info {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      min-width: 120px;
-   }
-   .profile-name {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: #096B68;
-      margin-bottom: 2px;
-   }
-   .profile-email {
-      font-size: 0.95rem;
-      color: #333;
-      opacity: 0.8;
-   }
-   .agreements-stats {
-      display: flex;
-      gap: 18px;
-      margin-left: auto;
-      align-items: center;
-   }
-   .agreements-stat-card {
-      background: #075B5E;
-      border-radius: 14px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 10px 18px 10px 18px;
-      box-shadow: 0 2px 12px rgba(7,91,94,0.10);
-      min-width: 110px;
-      min-height: 70px;
-      justify-content: center;
-   }
-   .agreements-stat-label {
-      color: #fff;
-      font-size: 0.95rem;
-      font-weight: 500;
-      margin-bottom: 6px;
-      letter-spacing: 0.5px;
-      text-align: center;
-      white-space: nowrap;
-   }
-   .agreements-stat-circle {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: #CAE8BD;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: clamp(0.8rem, 2vw, 1.1rem);
-      font-weight: 700;
-      color: #075B5E;
-      box-shadow: 0 2px 8px rgba(242,192,120,0.13);
-      margin: 0 auto;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      max-width: 90%;
-      padding: 0 4px;
-   }
-   .agreements-stat-card.complete,
-   .agreements-stat-card.incomplete,
-   .agreements-stat-card.expired {
-      transition: transform 0.18s cubic-bezier(.4,1.3,.6,1), box-shadow 0.18s;
-      cursor: pointer;
-   }
-   .agreements-stat-card.complete:hover,
-   .agreements-stat-card.incomplete:hover,
-   .agreements-stat-card.expired:hover {
-      transform: scale(1.07);
-      z-index: 2;
-   }
-   .agreements-stat-card.selected {
-      box-shadow: 0 0 0 3px #F2C078, 0 2px 12px rgba(7,91,94,0.10);
-      background: #0a7c80 !important;
-   }
-   /* Updated form-card style for BMC AGREEMENT */
-   .form-card.bmc-active, 
-   .form-card.amc-active, 
-   .form-card.input-service-active,
-   .form-card.consultant-active {
-      background: #075B5E !important;
-      color: #fff !important;
-      margin: 10px 20px 10px 20px !important;
-      border-radius: 18px;
-      min-height: 100%;
-      align-items: flex-start !important;
-      justify-content: flex-start !important;
-      padding: 32px 24px;
-      display: flex;
-      font-size: 1.25rem;
-      font-weight: 600;
-      flex-direction: column;
-   }
-   .form-card {
-      transition: background 0.2s, color 0.2s;
-   }
-   @media (max-width: 900px) {
-      .profile-banner-card {
-         flex-direction: column;
-         height: auto;
-         padding: 20px;
-         align-items: flex-start;
-      }
-      .agreements-stats {
-         margin-left: 0;
-         margin-top: 16px;
-         width: 100%;
-         justify-content: flex-start;
-      }
-   }
-   .bmc-result-outer-card, 
-   .amc-result-outer-card,
-   .consultant-result-outer-card {
-      background: #fff;
-      border-radius: 22px;
-      box-shadow: 0 2px 16px rgba(7,91,94,0.13);
-      margin: 22px 0 0 0;
-      padding: 0;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      transition: box-shadow 0.2s;
-   }
-   .bmc-result-row, 
-   .amc-result-row,
-   .consultant-result-row {
-      display: flex;
-      flex-direction: row;
-      justify-content: space-between;
-      align-items: center;
-      padding: 22px 32px 12px 32px;
-      border-radius: 22px 22px 0 0;
-      background: #fff;
-      font-size: 1.13rem;
-      font-weight: 100;
-      color: #000;
-   }
-   .bmc-result-row > div, 
-   .amc-result-row > div,
-   .consultant-result-row > div {
-      flex: 1;
-      text-align: center;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-   }
-   .bmc-result-value, 
-   .amc-result-value,
-   .consultant-result-value {
-      font-size: 1.1rem;
-      color: #333;
-      font-weight: 400;
-      letter-spacing: 0.5px;
-   }
-   .bmc-result-inner-card, 
-   .amc-result-inner-card,
-   .consultant-result-inner-card {
-      background: #C1DBB3;
-      border-radius: 18px;
-      margin: 22px 22px 22px 22px;
-      padding: 18px 24px 18px 24px;
-      display: flex;
-      flex-direction: row;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 8px rgba(7,91,94,0.10);
-      font-size: 1.08rem;
-      font-weight: 500;
-      color: #075B5E;
-   }
-   .bmc-result-inner-card > div, 
-   .amc-result-inner-card > div,
-   .consultant-result-inner-card > div {
-      flex: 1;
-      text-align: center;
-   }
-   .bmc-result-expire, 
-   .amc-result-expire,
-   .consultant-result-expire {
-      background: #fff;
-      color: #d9534f;
-      border-radius: 12px;
-      padding: 6px 12px;
-      font-size: 1rem;
-      font-weight: 600;
-      margin-left: 10px;
-      display: inline-block;
-   }
-   .bmc-missing-doc, 
-   .amc-missing-doc,
-   .consultant-missing-doc {
-      background: #fff;
-      color: #d9534f;
-      border-radius: 12px;
-      padding: 6px 12px;
-      font-size: 1rem;
-      font-weight: 600;
-      margin-left: 10px;
-      display: inline-block;
-   }
-   .bmc-no-result, 
-   .amc-no-result,
-   .consultant-no-result {
-      color: #fff;
-      text-align: center;
-      margin-top: 18px;
-      font-size: 1.1rem;
-   }
-   .bmc-search-icon-btn, 
-   .amc-search-icon-btn,
-   .consultant-search-icon-btn {
-      position: absolute;
-      right: 16px;
-      top: 50%;
-      transform: translateY(-50%) rotate(-20deg);
-      color: #2C2C2C;
-      font-size: 1.2rem;
-      background: none;
-      border: none;
-      outline: none;
-      cursor: pointer;
-      padding: 0;
-      z-index: 2;
-   }
-   /* Style for the data fields to match aside items */
-   .data-field-container {
-      display: flex;
-      font-weight: 700;
-      gap: 0;
-      border-bottom: 1px solid #c9a98b;
-      padding: 12px 0 8px 0;
-      background: #DEBA9D;
-      border-radius: 18px 18px 0 0;
-      color: #2C2C2C;
-      font-size: 1.08rem;
-      width: 100%;
-   }
-   .data-field {
-      flex: 1;
-      text-align: center;
-      padding: 8px;
-      font-weight: 600;
-   }
+    /* COOK AGREEMENT STYLES (CONSISTENT WITH CONSULTANT) */
+    .cook-result-outer-card {
+        background: #fff;
+        border-radius: 22px;
+        box-shadow: 0 2px 16px rgba(7,91,94,0.13);
+        margin: 22px 0 0 0;
+        padding: 0;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        transition: box-shadow 0.2s;
+    }
+    .cook-result-row {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 22px 32px 12px 32px;
+        border-radius: 22px 22px 0 0;
+        background: #fff;
+        font-size: 1.13rem;
+        font-weight: 100;
+        color: #000;
+    }
+    .cook-result-row > div {
+        flex: 1;
+        text-align: center;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+    .cook-result-value {
+        font-size: 1.1rem;
+        color: #333;
+        font-weight: 400;
+        letter-spacing: 0.5px;
+    }
+    .cook-result-inner-card {
+        background: #C1DBB3;
+        border-radius: 18px;
+        margin: 22px 22px 22px 22px;
+        padding: 18px 24px 18px 24px;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 8px rgba(7,91,94,0.10);
+        font-size: 1.08rem;
+        font-weight: 500;
+        color: #075B5E;
+    }
+    .cook-result-inner-card > div {
+        flex: 1;
+        text-align: center;
+    }
+    .cook-result-expire {
+        background: #fff;
+        color: #d9534f;
+        border-radius: 12px;
+        padding: 6px 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        margin-left: 10px;
+        display: inline-block;
+    }
+    .cook-missing-doc {
+        background: #fff;
+        color: #d9534f;
+        border-radius: 12px;
+        padding: 6px 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        margin-left: 10px;
+        display: inline-block;
+    }
+    .cook-no-result {
+        color: #fff;
+        text-align: center;
+        margin-top: 18px;
+        font-size: 1.1rem;
+    }
+    .cook-search-icon-btn {
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%) rotate(-20deg);
+        color: #2C2C2C;
+        font-size: 1.2rem;
+        background: none;
+        border: none;
+        outline: none;
+        cursor: pointer;
+        padding: 0;
+        z-index: 2;
+    }
+    .form-card.cook-active {
+        background: #075B5E !important;
+        color: #fff !important;
+        margin: 10px 20px 10px 20px !important;
+        border-radius: 18px;
+        min-height: 100%;
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+        padding: 32px 24px;
+        display: flex;
+        font-size: 1.25rem;
+        font-weight: 600;
+        flex-direction: column;
+    }
+
+    /* COMMON STYLES (SHARED ACROSS ALL AGREEMENT TYPES) */
+    .bmc-preview-card {
+        width: 180px;
+        height: 220px;
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 2px 8px rgba(7,91,94,0.10);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 12px;
+        border: 2px dashed #b5b5b5;
+        color: #b5b5b5;
+        font-size: 0.95rem;
+        font-weight: 500;
+        text-align: center;
+        overflow: hidden;
+        position: relative;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .bmc-preview-card:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 16px rgba(7,91,94,0.20);
+    }
+    .bmc-preview-pdf {
+        width: 100%;
+        height: 100%;
+        border: none;
+        background: #fff;
+        display: block;
+        border-radius: 16px;
+    }
+    .bmc-preview-placeholder {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #b5b5b5;
+        font-size: 0.95rem;
+        font-weight: 500;
+        background: #fff;
+        border-radius: 16px;
+        z-index: 1;
+    }
+    .pdf-viewer-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .pdf-view-button {
+        background: #075B5E;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 16px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-block;
+        margin-top: 8px;
+    }
+    .pdf-view-button:hover {
+        background: #0a7c80;
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(7,91,94,0.20);
+    }
+    .aside-card {
+        background: #C1DBB3;
+        border-radius: 20px;
+        width: 350px;
+        padding: 32px 0;
+        margin: 10px 0 10px 20px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .aside-item {
+        background: #F2C078;
+        border-radius: 12px;
+        margin: 12px 24px;
+        padding: 18px 24px;
+        font-weight: 400;
+        font-size: 1.1rem;
+        color: #333;
+        transition: transform 0.2s;
+        cursor: pointer;
+        text-align: left;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: relative;
+    }
+    .aside-item:hover {
+        transform: scale(1.07);
+        z-index: 1;
+    }
+    .dropdown-icon {
+        margin-left: 10px;
+        font-size: 1.1rem;
+        transition: transform 0.2s;
+    }
+    .aside-subitems {
+        opacity: 0;
+        max-height: 0;
+        overflow: hidden;
+        flex-direction: column;
+        margin-left: 36px;
+        margin-right: 24px;
+        margin-top: 4px;
+        transition: opacity 0.3s, max-height 0.3s;
+        display: flex;
+        pointer-events: none;
+    }
+    .aside-subitem {
+        background: #F2C078;
+        border-radius: 10px;
+        margin: 6px 0;
+        padding: 12px 18px;
+        font-size: 1rem;
+        color: #444;
+        font-weight: 400;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    .aside-subitem:hover {
+        transform: scale(1.05);
+        z-index: 1;
+    }
+    .aside-item.open .dropdown-icon {
+        transform: rotate(90deg);
+    }
+    .aside-item.open + .aside-subitems {
+        opacity: 1;
+        max-height: 400px;
+        pointer-events: auto;
+    }
+    /* Profile Card Styles */
+    .profile-banner-card {
+        background: #C1DBB3;
+        border-radius: 20px;
+        margin: 20px;
+        width: calc(100% - 40px);
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        padding: 16px 24px;
+        position: relative;
+        min-height: 110px;
+    }
+    .profile-picture {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: #096B68;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2rem;
+        margin: 0 18px 0 0;
+        padding: 0;
+        overflow: hidden;
+        position: relative;
+        align-self: center;
+    }
+    .profile-info {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-width: 120px;
+    }
+    .profile-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #096B68;
+        margin-bottom: 2px;
+    }
+    .profile-email {
+        font-size: 0.95rem;
+        color: #333;
+        opacity: 0.8;
+    }
+    .agreements-stats {
+        display: flex;
+        gap: 18px;
+        margin-left: auto;
+        align-items: center;
+    }
+    .agreements-stat-card {
+        background: #075B5E;
+        border-radius: 14px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 10px 18px 10px 18px;
+        box-shadow: 0 2px 12px rgba(7,91,94,0.10);
+        min-width: 110px;
+        min-height: 70px;
+        justify-content: center;
+    }
+    .agreements-stat-label {
+        color: #fff;
+        font-size: 0.95rem;
+        font-weight: 500;
+        margin-bottom: 6px;
+        letter-spacing: 0.5px;
+        text-align: center;
+        white-space: nowrap;
+    }
+    .agreements-stat-circle {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: #CAE8BD;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: clamp(0.8rem, 2vw, 1.1rem);
+        font-weight: 700;
+        color: #075B5E;
+        box-shadow: 0 2px 8px rgba(242,192,120,0.13);
+        margin: 0 auto;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 90%;
+        padding: 0 4px;
+    }
+    .agreements-stat-card.complete,
+    .agreements-stat-card.incomplete,
+    .agreements-stat-card.expired {
+        transition: transform 0.18s cubic-bezier(.4,1.3,.6,1), box-shadow 0.18s;
+        cursor: pointer;
+    }
+    .agreements-stat-card.complete:hover,
+    .agreements-stat-card.incomplete:hover,
+    .agreements-stat-card.expired:hover {
+        transform: scale(1.07);
+        z-index: 2;
+    }
+    .agreements-stat-card.selected {
+        box-shadow: 0 0 0 3px #F2C078, 0 2px 12px rgba(7,91,94,0.10);
+        background: #0a7c80 !important;
+    }
+    /* Updated form-card styles for all agreement types */
+    .form-card.bmc-active, 
+    .form-card.amc-active, 
+    .form-card.input-service-active,
+    .form-card.consultant-active,
+    .form-card.cook-active {
+        background: #075B5E !important;
+        color: #fff !important;
+        margin: 10px 20px 10px 20px !important;
+        border-radius: 18px;
+        min-height: 100%;
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+        padding: 32px 24px;
+        display: flex;
+        font-size: 1.25rem;
+        font-weight: 600;
+        flex-direction: column;
+    }
+    .form-card {
+        transition: background 0.2s, color 0.2s;
+    }
+    @media (max-width: 900px) {
+        .profile-banner-card {
+            flex-direction: column;
+            height: auto;
+            padding: 20px;
+            align-items: flex-start;
+        }
+        .agreements-stats {
+            margin-left: 0;
+            margin-top: 16px;
+            width: 100%;
+            justify-content: flex-start;
+        }
+    }
+    /* Style for the data fields to match aside items */
+    .data-field-container {
+        display: flex;
+        font-weight: 700;
+        gap: 0;
+        border-bottom: 1px solid #c9a98b;
+        padding: 12px 0 8px 0;
+        background: #DEBA9D;
+        border-radius: 18px 18px 0 0;
+        color: #2C2C2C;
+        font-size: 1.08rem;
+        width: 100%;
+    }
+    .data-field {
+        flex: 1;
+        text-align: center;
+        padding: 8px;
+        font-weight: 600;
+    }
+</style>
 </style>
 {% endblock %}
 {% block content %}
@@ -477,7 +476,7 @@
       <div class="aside-item" id="bmc-agreement">BMC AGREEMENT</div>
       <div class="aside-item" id="input-service-agreement">INPUT SERVICES AGREEMENT</div>
       <div class="aside-item" id="consultant-agreement">CONSULTANT AGREEMENT</div>
-      <div class="aside-item">COOK AGREEMENT</div>
+      <div class="aside-item" id="cook-agreement">COOK AGREEMENT</div>
       <div class="aside-item">DISTRIBUTER AGREEMENT</div>
       <div class="aside-item">INWARD TRANSPORT AGREEMENT</div>
       <div class="aside-item">OUTWARD TRANSPORT AGREEMENT</div>
@@ -574,15 +573,32 @@
             <div id="consultant-search-result-container"></div>
          </div>
       </div>
+      <!-- COOK AGREEMENT SEARCH CONTAINER -->
+        <div id="cook-search-container" style="display: none; width: 100%;">
+            <div style="padding: 15px 20px 0 20px; margin-bottom: 10px; margin-top: 20px;">
+                <div style="position: relative; width: 100%;">
+                    <input type="text" id="cook-search-input" placeholder="SEARCH BY LOCATION, COOK NAME"
+                        style="width: 100%; background: #FFEDDB; border: none; border-radius: 24px; padding: 12px 44px 12px 18px; font-size: 1rem; color: #000; outline: none; box-sizing: border-box; font-weight: 500;"
+                        onkeydown="if(event.key==='Enter'){document.getElementById('cook-search-btn').click();}"
+                    />
+                    <button id="cook-search-btn" class="cook-search-icon-btn" tabindex="-1">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <div id="cook-search-result-container"></div>
+            </div>
+        </div>
    </div>
 </div>
 {% endblock %}
 {% block extra_js %}
 <script>
+    // Utility function to toggle dropdown menus
 function toggleDropdown(element) {
     element.classList.toggle('open');
 }
 
+// Function to calculate days until a given date
 function daysUntil(dateStr) {
     const today = new Date();
     const end = new Date(dateStr);
@@ -590,6 +606,7 @@ function daysUntil(dateStr) {
     return diff;
 }
 
+// Function to format date as DD/MM/YY
 function formatDateDMY(dateStr) {
     if (!dateStr) return '-';
     const d = new Date(dateStr);
@@ -600,7 +617,9 @@ function formatDateDMY(dateStr) {
     return `${day}/${month}/${year}`;
 }
 
+// Main DOM content loaded handler
 document.addEventListener('DOMContentLoaded', function() {
+    // Status cards that can be selected (Complete, Incomplete, Expired)
     const selectable = [
         document.getElementById('complete-card'),
         document.getElementById('incomplete-card'),
@@ -608,40 +627,55 @@ document.addEventListener('DOMContentLoaded', function() {
     ];
     let selectedStatus = null;
 
+    // Reset all search results
     function resetAllSearchResults() {
         resetBmcSearchResults();
         resetAmcSearchResults();
         resetInputServiceSearchResults();
         resetConsultantSearchResults();
+        resetCookSearchResults();
     }
 
+    // Reset BMC search results
     function resetBmcSearchResults() {
         document.getElementById('bmc-location-search').value = '';
         document.getElementById('bmc-search-result-container').innerHTML = '';
     }
     
+    // Reset AMC search results
     function resetAmcSearchResults() {
         document.getElementById('amc-location-search').value = '';
         document.getElementById('amc-search-result-container').innerHTML = '';
     }
     
+    // Reset Input Service search results
     function resetInputServiceSearchResults() {
         document.getElementById('input-service-product-search').value = '';
         document.getElementById('input-service-search-result-container').innerHTML = '';
     }
 
+    // Reset Consultant search results
     function resetConsultantSearchResults() {
         document.getElementById('consultant-search-input').value = '';
         document.getElementById('consultant-search-result-container').innerHTML = '';
     }
 
+    // Reset Cook search results
+    function resetCookSearchResults() {
+        document.getElementById('cook-search-input').value = '';
+        document.getElementById('cook-search-result-container').innerHTML = '';
+    }
+
+    // Hide all search containers
     function hideAllSearchContainers() {
         document.getElementById('amc-search-container').style.display = 'none';
         document.getElementById('bmc-search-container').style.display = 'none';
         document.getElementById('input-service-search-container').style.display = 'none';
         document.getElementById('consultant-search-container').style.display = 'none';
+        document.getElementById('cook-search-container').style.display = 'none';
     }
 
+    // Update the view form based on selected agreement type
     function updateViewForm(agreementType) {
         const viewForm = document.getElementById('view-form');
         const viewFormText = document.getElementById('view-form-text');
@@ -651,7 +685,8 @@ document.addEventListener('DOMContentLoaded', function() {
             'amc-active', 
             'bmc-active', 
             'input-service-active',
-            'consultant-active'
+            'consultant-active',
+            'cook-active'
         );
         
         // Hide all search containers
@@ -674,6 +709,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Add click handlers for status cards (Complete, Incomplete, Expired)
     selectable.forEach(card => {
         card.addEventListener('click', function() {
             selectable.forEach(c => c.classList.remove('selected'));
@@ -691,10 +727,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateViewForm('input-service');
             } else if (viewForm.classList.contains('consultant-active')) {
                 updateViewForm('consultant');
+            } else if (viewForm.classList.contains('cook-active')) {
+                updateViewForm('cook');
             }
         });
     });
 
+    // Add click handlers for agreement type buttons
     document.getElementById('amc-agreement').addEventListener('click', function() {
         updateViewForm('amc');
     });
@@ -711,6 +750,151 @@ document.addEventListener('DOMContentLoaded', function() {
         updateViewForm('consultant');
     });
 
+    // COOK AGREEMENT CLICK HANDLER
+    document.getElementById('cook-agreement').addEventListener('click', function() {
+        updateViewForm('cook');
+    });
+
+    // COOK SEARCH BUTTON HANDLER
+    document.getElementById('cook-search-btn').addEventListener('click', function() {
+        const input = document.getElementById('cook-search-input');
+        const query = input.value.trim();
+        const status = selectedStatus ? selectedStatus : '';
+        const resultDiv = document.getElementById('cook-search-result-container');
+        resultDiv.innerHTML = '';
+        
+        // Show message if search query is empty
+        if (query.length === 0) {
+            resultDiv.innerHTML = '<div class="cook-no-result">Please enter a location or cook name.</div>';
+            return;
+        }
+
+        // Split query by comma for location and cook name
+        let location = '';
+        let cookName = '';
+        const parts = query.split(',');
+        if (parts.length > 0) location = parts[0].trim();
+        if (parts.length > 1) cookName = parts.slice(1).join(',').trim();
+
+        // Prepare query parameters
+        const params = new URLSearchParams();
+        if (location) params.append('location', location);
+        if (cookName) params.append('cook_name', cookName);
+        if (status) params.append('status', status);
+
+        // Fetch cook agreement data from server
+        fetch(`/cook/search/viewer/?${params.toString()}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.results && data.results.length > 0) {
+                    let html = '';
+                    // Process each result and create HTML cards
+                    data.results.forEach(item => {
+                        // Create a unique ID for each PDF container
+                        const pdfContainerId = `pdf-container-cook-${item.id}`;
+                        
+                        // Check if status is incomplete to show missing document message
+                        const missingDocMessage = (item.document_status && item.document_status.toUpperCase() === 'INCOMPLETE') 
+                            ? `<div style="padding:10px 0;width:100%;text-align:left;">
+                                  <span>MISSING DOCUMENT:<span class="cook-missing-doc">${item.pending_document}</span></span>
+                               </div>`
+                            : '';
+                        
+                        // Build the HTML for each cook agreement card
+                        html += `
+<div class="cook-result-outer-card" style="background:#fff;">
+    <!-- Header row with field labels -->
+    <div class="data-field-container">
+        <div class="data-field">LOCATION</div>
+        <div class="data-field">COOK NAME</div>
+        <div class="data-field">AGREEMENT DATE</div>
+        <div class="data-field">DOCUMENT STATUS</div>
+    </div>
+    
+    <!-- Row with actual values -->
+    <div class="cook-result-row" style="background:#fff; border-radius:0; padding:18px 0 0 0; font-size:1.1rem">
+        <div class="cook-result-value" style="flex:1;text-align:center;">${item.location || '-'}</div>
+        <div class="cook-result-value" style="flex:1;text-align:center;">${item.contractor || '-'}</div>
+        <div class="cook-result-value" style="flex:1;text-align:center;">${formatDateDMY(item.agreement_date) || '-'}</div>
+        <div class="cook-result-value" style="flex:1;text-align:center;">${item.document_status || '-'}</div>
+    </div>
+    
+    <!-- Detailed information section -->
+    <div class="cook-result-inner-card" style="display:flex;flex-direction:row;align-items:center;gap:2px;">
+        <!-- Left side with agreement details -->
+        <div style="flex:2;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;height:220px;padding-left:10px;">
+            ${missingDocMessage}
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Agreement Start Date: ${(item.start_date)}</span>
+            </div>
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Agreement End Date: ${(item.end_date)}</span>
+            </div>
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Expire in: <span class="cook-result-expire">${item.expire_months !== undefined ? item.expire_months : '-'} month${item.expire_months == 1 ? '' : 's'} from today</span></span>
+            </div>
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Scanned & Inserted By: <span class="cook-result-expire" style="color:#d9534f;">${item.created_by}</span></span>
+            </div>
+        </div>
+        
+        <!-- Right side with PDF preview -->
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+            <div class="bmc-preview-card" style="width:180px;height:220px;">
+                ${item.document_url ? `
+                <!-- PDF preview container -->
+                <div id="${pdfContainerId}" class="pdf-viewer-container" style="width:100%;height:100%;">
+                    <iframe class="bmc-preview-pdf" src="${item.document_url}#toolbar=0&navpanes=0&scrollbar=0" style="width:100%;height:100%;border:none;"></iframe>
+                </div>
+                ` : `
+                <!-- Placeholder if no PDF available -->
+                <div class="bmc-preview-placeholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">NO PDF</div>
+                `}
+            </div>
+            ${item.document_url ? `
+            <!-- Link to view full PDF -->
+            <a href="${item.document_url}" target="_blank" class="pdf-view-button">VIEW IN FULL PAGE</a>
+            ` : ''}
+        </div>
+    </div>
+</div>
+                        `;
+                    });
+                    // Insert all the generated HTML into the results container
+                    resultDiv.innerHTML = html;
+
+                    // Add fallback for PDFs that can't be embedded
+                    document.querySelectorAll('.bmc-preview-pdf').forEach(iframe => {
+                        iframe.onload = function() {
+                            try {
+                                // Check if we can access the iframe content
+                                if (iframe.contentDocument || iframe.contentWindow.document) {
+                                    // PDF loaded successfully
+                                }
+                            } catch (e) {
+                                // If we get a security error, show a link instead
+                                const container = iframe.parentElement;
+                                container.innerHTML = `
+                                    <div style="text-align: center; padding: 20px; width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                                        <p>PDF cannot be previewed</p>
+                                        <a href="${iframe.src}" target="_blank" class="pdf-view-button">
+                                            VIEW PDF IN NEW TAB
+                                        </a>
+                                    </div>
+                                `;
+                            }
+                        };
+                    });
+                } else {
+                    // Show message if no results found
+                    resultDiv.innerHTML = '<div class="cook-no-result">No cook agreements found.</div>';
+                }
+            })
+            .catch(() => {
+                // Show error message if fetch fails
+                resultDiv.innerHTML = '<div class="cook-no-result">Error fetching cook agreements.</div>';
+            });
+    });
     // Consultant Search button handler
     document.getElementById('consultant-search-btn').addEventListener('click', function() {
         const input = document.getElementById('consultant-search-input');

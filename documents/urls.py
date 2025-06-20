@@ -41,6 +41,8 @@ urlpatterns = [
     path('cook/create/', cook_create, name='cook-create'),
     path('cook/search/', cook_search, name='cook-search'),
     path('cook/stats/', bmc_stats, name='bmc-stats'),
+    path('cook/edit-merge/<int:pk>/', cook_edit_merge, name="cook-edit-merge"),
+    path('cook/search/viewer/', cook_search_viewer, name='cook_search_viewer'),
 
     
     path('distributer/stats/', bmc_stats, name='bmc-stats'),

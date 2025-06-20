@@ -1355,7 +1355,7 @@ input[placeholder]::placeholder {
                     placeholder="SEARCH BY LOCATION, CONTRACTOR"
                     style="width: 100%; background: #FFEDDB; border: none; border-radius: 24px; padding: 12px 44px 12px 18px; font-size: 1rem; color: #000; outline: none; box-sizing: border-box; font-weight: 500;"
                 />
-                <span style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%) rotate(-20deg); color: #2C2C2C; font-size: 1.2rem; pointer-events: none;">
+                <span id="cook-search-icon" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%) rotate(-20deg); color: #2C2C2C; font-size: 1.2rem; pointer-events: none;">
                     <i class="fas fa-search"></i>
                 </span>
             </div>
@@ -3175,6 +3175,274 @@ function getCookie(name) {
             alert('Could not load PDF for preview.');
         });
 }
+// --- COOK AGREEMENT SEARCH/EDIT ---
+
+let cookSearchInput, cookSearchIcon, cookSearchResult;
+
+function parseCookSearchInput(input) {
+    console.log('[parseCookSearchInput] Input received:', input);
+    const parts = input.split(',');
+    const location = parts[0] ? parts[0].trim() : '';
+    const cookName = parts[1] ? parts[1].trim() : '';
+    console.log('[parseCookSearchInput] Parsed values - location:', location, 'cookName:', cookName);
+    return { location, cookName };
+}
+
+function searchCookAgreement() {
+    console.log('[searchCookAgreement] Function called');
+    const input = cookSearchInput.value.trim();
+    console.log('[searchCookAgreement] Raw input:', input);
+    
+    const { location, cookName } = parseCookSearchInput(input);
+    console.log('[searchCookAgreement] Parsed input - location:', location, 'cookName:', cookName);
+    
+    if (!location || !cookName) {
+        console.warn('[searchCookAgreement] Validation failed - missing location or cook name');
+        cookSearchResult.innerHTML = '<div style="margin:20px 0; color:#fff; text-align:center;">Please enter both location and cook name, separated by a comma.</div>';
+        return;
+    }
+
+    const url = `/cook/search/?location=${encodeURIComponent(location)}&cook_name=${encodeURIComponent(cookName)}`;
+    console.log('[searchCookAgreement] Fetching from URL:', url);
+    
+    fetch(url)
+        .then(res => {
+            console.log('[searchCookAgreement] Fetch response received, status:', res.status);
+            return res.json();
+        })
+        .then(data => {
+            console.log('[searchCookAgreement] JSON data received:', data);
+            renderCookResultCard(data.results);
+        })
+        .catch((error) => {
+            console.error('[searchCookAgreement] Error fetching data:', error);
+            cookSearchResult.innerHTML = '<div style="margin:20px 0; color:#fff; text-align:center;">Error fetching data.</div>';
+        });
+}
+
+function renderCookResultCard(data) {
+    console.log('[renderCookResultCard] Data received:', data);
+    
+    if (!data || data.length === 0) {
+        console.warn('[renderCookResultCard] No data or empty array received');
+        cookSearchResult.innerHTML = '<div style="margin:20px 0; color:#fff; text-align:center;">No results found (Either it is a complete document or you entered the wrong location/cook name)</div>';
+        return;
+    }
+
+    const obj = data[0];
+    console.log('[renderCookResultCard] First result object:', obj);
+    
+    window.currentCookId = obj.id;
+    console.log('[renderCookResultCard] Stored currentCookId:', window.currentCookId);
+
+    console.log('[renderCookResultCard] Rendering HTML template...');
+    cookSearchResult.innerHTML = `
+        <div style="background: #DEBA9D; border-radius: 18px; padding: 28px; margin: 18px 0 0 0; color: #2C2C2C; font-size: 1rem; box-shadow: 0 2px 12px rgba(0,0,0,0.10); width: 100%; box-sizing: border-box;">
+            <div style="display: flex; font-weight: 700; gap: 24px; border-bottom: 1px solid #c9a98b; padding-bottom: 8px;">
+                <div style="flex:1;">LOCATION</div>
+                <div style="flex:1;">COOK NAME</div>
+                <div style="flex:1;">DOCUMENT STATUS</div>
+                <div style="flex:1;">MISSING DOCUMENT</div>
+            </div>
+            <div style="display: flex; gap: 24px; margin-top: 8px; margin-bottom: 24px;">
+                <div style="flex:1;">${obj.location}</div>
+                <div style="flex:1;">${obj.contractor}</div>
+                <div style="flex:1;">
+                    <select id="cook-edit-doc-status" style="padding: 6px 12px; border-radius: 8px; background: #DEBA9D; font-weight: 500;">
+                        <option value="INCOMPLETE" ${obj.document_status === 'INCOMPLETE' ? 'selected' : ''}>INCOMPLETE</option>
+                        <option value="COMPLETE" ${obj.document_status === 'COMPLETE' ? 'selected' : ''}>COMPLETE</option>
+                    </select>
+                </div>
+                <div style="flex:1;">
+                    <input id="cook-edit-missing-document" type="text" value="${obj.document_pending || ''}" style="width:90%;padding:6px 10px;border-radius:8px;border:1px solid #c9a98b;background:#fff;color:#333;font-size:1rem;">
+                </div>
+            </div>
+            <div style="display: flex; justify-content: center;">
+                <div style="border: 2px dashed #b48b5a; border-radius: 16px; padding: 18px 32px; background: #D5CEA3; min-width: 220px; text-align: center; display: flex; flex-direction: column; align-items: center;">
+                    <div style="font-weight:600; margin-bottom:6px;">DOCUMENT</div>
+                    ${
+                        obj.document_url
+                        ? `<span style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <a href="${obj.document_url}" target="_blank" style="color:#8a5c2b; text-decoration: none; pointer-events: none; cursor: default;" id="cook-doc-link">${obj.document_name}</a>
+                                <span style="cursor:pointer;" id="cook-doc-edit">
+                                    <i class="fas fa-edit" style="color:#8a5c2b; font-size:1.1rem;" title="View/Edit PDF"></i>
+                                </span>
+                           </span>
+                           <div style="margin-top:18px; padding-left:11px">
+                                <label for="cookInsertPdfInput" style="background:#A0C49D; color:#333; padding:10px 10px 10px 10px; border-radius:8px; cursor:pointer; font-weight:500;">
+                                    UPLOAD PDF
+                                    <input type="file" id="cookInsertPdfInput" accept="application/pdf" style="display:none;">
+                                </label>
+                                <span id="cookInsertPdfFilename" style="margin-left:10px; color:#8a5c2b; font-size:0.95rem;"></span>
+                            </div>
+                        `
+                        : `<span style="color:#b48b5a;">No document uploaded</span>`
+                    }
+                </div>
+            </div>
+            <div style="text-align:center; margin-top:24px;">
+                <button id="cook-edit-submit" style="background:#8A784E; color:#000; border:none; border-radius:8px; padding:10px 32px; font-size:1.1rem; cursor:pointer;">
+                    SUBMIT
+                </button>
+            </div>
+        </div>
+    `;
+
+    console.log('[renderCookResultCard] Setting up event listeners...');
+    setTimeout(() => {
+        // PDF preview logic
+        const editIcon = document.getElementById('cook-doc-edit');
+        if (editIcon) {
+            console.log('[renderCookResultCard] Found PDF edit icon, setting up click handler');
+            editIcon.addEventListener('click', function() {
+                const docLink = document.getElementById('cook-doc-link');
+                console.log('[editIcon click] PDF link:', docLink?.href);
+                if (docLink && docLink.href) {
+                    console.log('[editIcon click] Opening PDF in modal');
+                    openPdfInModal(docLink.href);
+                }
+            });
+        }
+
+        // File selection logic
+        const insertInput = document.getElementById('cookInsertPdfInput');
+        const insertFilename = document.getElementById('cookInsertPdfFilename');
+        let insertedPdfFile = null;
+
+        if (insertInput) {
+            console.log('[renderCookResultCard] Found PDF input, setting up change handler');
+            insertInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                console.log('[insertInput change] File selected:', file);
+                
+                if (file && file.type === 'application/pdf') {
+                    console.log('[insertInput change] Valid PDF file selected');
+                    insertFilename.textContent = file.name;
+                    insertedPdfFile = file;
+                } else {
+                    console.warn('[insertInput change] Invalid file type selected');
+                    insertFilename.textContent = '';
+                    insertedPdfFile = null;
+                    alert('Please select a valid PDF file.');
+                }
+            });
+        }
+
+        // Submit button logic
+        const submitBtn = document.getElementById('cook-edit-submit');
+        if (submitBtn) {
+            console.log('[renderCookResultCard] Found submit button, setting up click handler');
+            submitBtn.addEventListener('click', function() {
+                console.log('[submitBtn click] Submit button clicked');
+                
+                const statusSelect = document.getElementById('cook-edit-doc-status');
+                const cookId = window.currentCookId;
+                const missingDocInput = document.getElementById('cook-edit-missing-document');
+                
+                console.log('[submitBtn click] Current values - status:', statusSelect.value, 
+                          'cookId:', cookId, 
+                          'missingDoc:', missingDocInput?.value,
+                          'pdfFile:', insertedPdfFile?.name);
+
+                if (!cookId) {
+                    console.error('[submitBtn click] No cookId found');
+                    alert('Cook Agreement ID not found.');
+                    return;
+                }
+                
+                if (!insertedPdfFile) {
+                    console.warn('[submitBtn click] No PDF file selected');
+                    alert('Please select a PDF to insert.');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('document_status', statusSelect.value);
+                formData.append('insert_pdf', insertedPdfFile);
+                formData.append('pending_document', missingDocInput ? missingDocInput.value : '');
+                
+                console.log('[submitBtn click] FormData prepared, sending request...');
+                
+                fetch(`/cook/edit-merge/${cookId}/`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                })
+                .then(res => {
+                    console.log('[submitBtn click] Response received, status:', res.status);
+                    return res.json();
+                })
+                .then(data => {
+                    console.log('[submitBtn click] JSON response:', data);
+                    if (data.success) {
+                        console.log('[submitBtn click] Update successful');
+                        const editCard = document.getElementById('cook-edit-card');
+                        const successMsg = editCard?.querySelector('.form-success-message');
+                        
+                        if (successMsg) {
+                            console.log('[submitBtn click] Showing success message');
+                            successMsg.style.display = 'flex';
+                        }
+                        
+                        if (editCard) {
+                            editCard.classList.add('success-active');
+                        }
+                        
+                        setTimeout(() => {
+                            console.log('[submitBtn click] Resetting UI after success');
+                            if (successMsg) successMsg.style.display = 'none';
+                            if (editCard) editCard.classList.remove('success-active');
+                            if (editCard) editCard.style.display = 'none';
+                            cookSearchResult.innerHTML = '';
+                            updateAgreementStats('cook');
+                        }, 2000);
+                    } else {
+                        console.error('[submitBtn click] Update failed:', data.error);
+                        alert('Error: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(err => {
+                    console.error('[submitBtn click] Fetch error:', err);
+                    alert('Error: ' + err.message);
+                });
+            });
+        }
+    }, 0);
+}
+
+// Attach event listeners after DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('[DOMContentLoaded] Initializing cook agreement search...');
+    
+    cookSearchInput = document.getElementById('cook-search-input');
+    cookSearchIcon = document.getElementById('cook-search-icon');
+    cookSearchResult = document.getElementById('cook-search-result');
+    
+    console.log('[DOMContentLoaded] Elements found - input:', cookSearchInput, 'icon:', cookSearchIcon, 'result:', cookSearchResult);
+    
+    if (cookSearchInput && cookSearchIcon) {
+        console.log('[DOMContentLoaded] Setting up event listeners for search');
+        
+        cookSearchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                console.log('[cookSearchInput] Enter key pressed');
+                e.preventDefault();
+                searchCookAgreement();
+            }
+        });
+        
+        cookSearchIcon.addEventListener('click', function() {
+            console.log('[cookSearchIcon] Search icon clicked');
+            searchCookAgreement();
+        });
+    } else {
+        console.error('[DOMContentLoaded] Required elements not found');
+    }
+});
+
+console.log('Cook agreement module loaded');
 
 // --- CONSULTANT AGREEMENT SEARCH/EDIT ---
 

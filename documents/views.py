@@ -1525,6 +1525,216 @@ def cook_search(request):
     print("cook_search results:", results)
     return JsonResponse({"results": results})
 
+@xframe_options_exempt
+def cook_search_viewer(request):
+    try:
+        location = request.GET.get('location', '').strip()
+        contractor = request.GET.get('contractor', '').strip()
+        status = request.GET.get('status', '').strip().upper()
+
+        print("[cook_search_viewer] GET params:")
+        print("  location:", location)
+        print("  contractor:", contractor)
+        print("  status:", status)
+
+        qs = CookAgreement.objects.all()
+        if location:
+            qs = qs.filter(location__icontains=location)
+        if contractor:
+            qs = qs.filter(contractor__icontains=contractor)
+        if status:
+            qs = qs.filter(document_status__iexact=status)
+
+        def format_dmy(date_obj):
+            if not date_obj:
+                return ""
+            return date_obj.strftime("%d/%m/%y")
+
+        results = []
+        for obj in qs:
+            start = obj.start_date
+            end = obj.end_date
+            expire_months = months_between_today_and_end(end) if end else "-"
+            if obj.created_by:
+                creator = f"{obj.created_by.first_name or ''} {obj.created_by.last_name or ''}".strip()
+                if not creator:
+                    creator = obj.created_by.email
+            else:
+                creator = ""
+            results.append({
+                "id": obj.id,
+                "agreement_date": format_dmy(getattr(obj, "agreement_date", None)),
+                "zone": getattr(obj, "zone", ""),
+                "location": obj.location,
+                "contractor": obj.contractor,
+                "document_status": obj.document_status,
+                "pending_document": getattr(obj, "document_pending", ""),
+                "start_date": format_dmy(start) if start else "",
+                "end_date": format_dmy(end) if end else "",
+                "expire_months": expire_months,
+                "created_by": creator,
+                "document_url": obj.document.url if obj.document else "",
+            })
+        print("[cook_search_viewer] Results:")
+        import pprint
+        pprint.pprint(results)
+        return JsonResponse({"results": results})
+    except Exception as e:
+        print(f"[cook_search_viewer] Exception occurred: {e}")
+        return JsonResponse({"error": str(e)}, status=500)
+
+@csrf_exempt
+def cook_edit_merge(request, pk):
+    """
+    Merge a new PDF into the existing Cook Agreement PDF.
+    If the agreement is now expired (based on end_date), move the merged PDF to the Expired folder.
+    If the status changes (e.g., INCOMPLETE -> COMPLETE), move the merged PDF to the new status folder and remove the old status folder if empty.
+    The folder structure is maintained as:
+    Agreements/{Ongoing|Expired}/Cook Agreements/{STATUS}/{Agreement Name}/{STARTDATE}-{ENDDATE}/
+    """
+    if request.method == "POST":
+        print("---- cook_edit_merge POST ----")
+        print("request.POST:", dict(request.POST))
+        print("request.FILES:", request.FILES)
+        cook = get_object_or_404(CookAgreement, pk=pk)
+        print(f"Fetched CookAgreement ID {pk}: {cook}")
+
+        new_status = request.POST.get("document_status", cook.document_status)
+        print("New status:", new_status)
+        new_pending_document = request.POST.get("pending_document", cook.document_pending)
+        print("New pending_document:", new_pending_document)
+        new_pdf_file = request.FILES.get("insert_pdf")
+        print("New PDF file:", new_pdf_file.name if new_pdf_file else "None")
+
+        if not new_pdf_file:
+            print("No PDF uploaded")
+            return JsonResponse({"error": "No PDF uploaded"}, status=400)
+
+        temp_dir = None
+        try:
+            with transaction.atomic():
+                # Verify we have an existing document
+                if not cook.document:
+                    print("Error: No existing document to merge with")
+                    return JsonResponse({"error": "No existing document to merge with"}, status=400)
+
+                existing_file_path = cook.document.path
+                existing_filename = os.path.basename(cook.document.name)
+                print(f"Existing file path: {existing_file_path}")
+                print(f"Existing filename: {existing_filename}")
+
+                # Initialize PDF writer for merged content
+                writer = PdfWriter()
+                print("Initialized PdfWriter for merging.")
+
+                # Load existing PDF pages
+                print("Loading existing PDF...")
+                existing_pdf = PdfReader(existing_file_path)
+                original_page_count = len(existing_pdf.pages)
+                print(f"Existing PDF has {original_page_count} pages")
+                for page in existing_pdf.pages:
+                    writer.add_page(page)
+                print(f"Added {original_page_count} existing pages to writer")
+
+                # Load and add new PDF pages
+                print("Loading new PDF to append...")
+                new_pdf = PdfReader(new_pdf_file)
+                new_page_count = len(new_pdf.pages)
+                print(f"New PDF has {new_page_count} pages")
+                for page in new_pdf.pages:
+                    writer.add_page(page)
+                print(f"Added {new_page_count} new pages to writer")
+
+                # Write merged content to a temp file
+                temp_dir = tempfile.mkdtemp()
+                temp_pdf_path = os.path.join(temp_dir, existing_filename)
+                with open(temp_pdf_path, 'wb') as temp_f:
+                    writer.write(temp_f)
+                print(f"Created merged PDF with {len(writer.pages)} total pages at {temp_pdf_path}")
+
+                # Determine if agreement is now expired
+                today = date.today()
+                end_date_obj = cook.end_date if isinstance(cook.end_date, date) else datetime.strptime(str(cook.end_date), "%Y-%m-%d").date()
+                is_expired = end_date_obj and end_date_obj < today
+                print(f"Agreement expired? {is_expired} (end_date: {cook.end_date}, today: {today})")
+
+                # Build the correct folder structure
+                base_folder = "Expired" if is_expired else "Ongoing"
+                agreement_type_folder = "Cook Agreements"
+                status_folder = new_status.upper() if new_status else "UNKNOWN"
+                agreement_name = os.path.splitext(existing_filename)[0]
+                date_folder = f"{cook.start_date}-{cook.end_date}"
+                upload_folder = os.path.join(
+                    "Agreements",
+                    base_folder,
+                    agreement_type_folder,
+                    status_folder,
+                    agreement_name,
+                    date_folder
+                )
+                full_upload_path = os.path.join(settings.MEDIA_ROOT, upload_folder)
+                new_file_path = os.path.join(full_upload_path, existing_filename)
+                print(f"Final upload folder: {upload_folder}")
+                print(f"Full upload path: {full_upload_path}")
+                print(f"New file path: {new_file_path}")
+
+                # Only now create the final folder and move the file
+                os.makedirs(full_upload_path, exist_ok=True)
+                shutil.move(temp_pdf_path, new_file_path)
+                print(f"Moved merged PDF to {new_file_path}")
+
+                # Remove old file if it's in a different location
+                if os.path.abspath(existing_file_path) != os.path.abspath(new_file_path):
+                    print(f"Moving file from {existing_file_path} to {new_file_path}")
+                    if os.path.exists(existing_file_path):
+                        os.remove(existing_file_path)
+                    # Clean up old empty folders up to status level
+                    try:
+                        old_date_folder = os.path.dirname(existing_file_path)
+                        old_agreement_folder = os.path.dirname(old_date_folder)
+                        old_status_folder = os.path.dirname(old_agreement_folder)
+                        if os.path.isdir(old_date_folder) and not os.listdir(old_date_folder):
+                            os.rmdir(old_date_folder)
+                        if os.path.isdir(old_agreement_folder) and not os.listdir(old_agreement_folder):
+                            os.rmdir(old_agreement_folder)
+                        if os.path.isdir(old_status_folder) and not os.listdir(old_status_folder):
+                            os.rmdir(old_status_folder)
+                        print("Cleaned up old empty folders if needed.")
+                    except Exception as cleanup_err:
+                        print("Cleanup error:", cleanup_err)
+
+                # Update the document field to the new relative path if location changed
+                rel_file_path = os.path.relpath(new_file_path, settings.MEDIA_ROOT)
+                if cook.document.name != rel_file_path.replace("\\", "/"):
+                    cook.document.name = rel_file_path.replace("\\", "/")
+                    print(f"Updated cook.document.name to {cook.document.name}")
+
+                # Update the model to reflect the changes
+                cook.document_status = new_status
+                cook.document_pending = new_pending_document
+                cook.save()
+                print("PDF successfully merged and saved with correct folder structure")
+                print(f"Final file location: {new_file_path}")
+
+                return JsonResponse({"success": True, "new_page_count": len(writer.pages)})
+
+        except Exception as e:
+            print("Exception during PDF merge:", str(e))
+            if temp_dir and os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+            if 'full_upload_path' in locals() and os.path.exists(full_upload_path):
+                try:
+                    shutil.rmtree(full_upload_path)
+                except Exception:
+                    pass
+            return JsonResponse({"error": str(e)}, status=500)
+        finally:
+            if temp_dir and os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+
+    print("Request method not allowed:", request.method)
+    return JsonResponse({"error": "Only POST allowed"}, status=405)
+
 def login(request):
     if request.method == "POST":
         email = request.POST.get("email")
