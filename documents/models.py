@@ -95,7 +95,8 @@ class BaseAgreement(models.Model):
     document = models.FileField(
         upload_to='agreements/',
         validators=[FileExtensionValidator(['pdf', 'jpg', 'jpeg', 'png'])],
-        help_text="PDF, JPG, or PNG (Max 5MB)"
+        help_text="PDF, JPG, or PNG (Max 5MB)",
+        max_length=500
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -161,6 +162,60 @@ class AMCAgreement(models.Model):
     def __str__(self):
         return f"{self.product} - {self.contractor}"
     
+    class Meta:
+        verbose_name = "AMC Agreement"
+        verbose_name_plural = "AMC Agreements"
+
+
+class ConsultantAgreement(models.Model):
+    category = models.CharField(max_length=100)
+    contractor = models.CharField(max_length=100)
+    pan = models.CharField(max_length=20)
+    type_of_agreement = models.CharField(max_length=100)
+    agreement_date = models.DateField()
+    start_date = models.DateField()
+    end_date = models.DateField()
+    tenure_months = models.IntegerField()
+    lock_in_period = models.CharField(max_length=100)
+    monthly_payout = models.DecimalField(max_digits=12, decimal_places=2)
+    document_status = models.CharField(
+        max_length=20,
+        choices=[('INCOMPLETE', 'INCOMPLETE'), ('COMPLETE', 'COMPLETE'), ('EXPIRE', 'EXPIRE')],
+        default='INCOMPLETE'
+    )
+    document_pending = models.CharField(max_length=255, blank=True, null=True)
+    document = models.FileField(
+        upload_to='consultant_agreements/',
+        max_length=500,
+        validators=[FileExtensionValidator(['pdf', 'jpg', 'jpeg', 'png'])],
+        help_text="PDF, JPG, or PNG (Max 5MB)"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        CustomUser, 
+        related_name='created_consultantagreements',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+    updated_by = models.ForeignKey(
+        CustomUser, 
+        related_name='updated_consultantagreements',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    def __str__(self):
+        return f"{self.category} - {self.contractor}"
+    
+    class Meta:
+        verbose_name = "Consultant Agreement"
+        verbose_name_plural = "Consultant Agreements"
+    
+
+    
 class InputServicesAgreement(models.Model):
     product = models.CharField(max_length=100)
     contractor = models.CharField(max_length=100)
@@ -213,10 +268,6 @@ class BMCAgreement(BaseAgreement):
         verbose_name = "BMC Agreement"
         verbose_name_plural = "BMC Agreements"
 
-class ConsultantAgreement(BaseAgreement):
-    class Meta:
-        verbose_name = "Consultant Agreement"
-        verbose_name_plural = "Consultant Agreements"
 
 class CookAgreement(BaseAgreement):
     class Meta:

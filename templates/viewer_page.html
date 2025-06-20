@@ -254,7 +254,10 @@
       background: #0a7c80 !important;
    }
    /* Updated form-card style for BMC AGREEMENT */
-   .form-card.bmc-active, .form-card.amc-active, .form-card.input-service-active {
+   .form-card.bmc-active, 
+   .form-card.amc-active, 
+   .form-card.input-service-active,
+   .form-card.consultant-active {
       background: #075B5E !important;
       color: #fff !important;
       margin: 10px 20px 10px 20px !important;
@@ -285,7 +288,9 @@
          justify-content: flex-start;
       }
    }
-   .bmc-result-outer-card, .amc-result-outer-card {
+   .bmc-result-outer-card, 
+   .amc-result-outer-card,
+   .consultant-result-outer-card {
       background: #fff;
       border-radius: 22px;
       box-shadow: 0 2px 16px rgba(7,91,94,0.13);
@@ -297,7 +302,9 @@
       align-items: stretch;
       transition: box-shadow 0.2s;
    }
-   .bmc-result-row, .amc-result-row {
+   .bmc-result-row, 
+   .amc-result-row,
+   .consultant-result-row {
       display: flex;
       flex-direction: row;
       justify-content: space-between;
@@ -309,19 +316,25 @@
       font-weight: 100;
       color: #000;
    }
-   .bmc-result-row > div, .amc-result-row > div {
+   .bmc-result-row > div, 
+   .amc-result-row > div,
+   .consultant-result-row > div {
       flex: 1;
       text-align: center;
       font-weight: 600;
       letter-spacing: 0.5px;
    }
-   .bmc-result-value, .amc-result-value {
+   .bmc-result-value, 
+   .amc-result-value,
+   .consultant-result-value {
       font-size: 1.1rem;
       color: #333;
       font-weight: 400;
       letter-spacing: 0.5px;
    }
-   .bmc-result-inner-card, .amc-result-inner-card {
+   .bmc-result-inner-card, 
+   .amc-result-inner-card,
+   .consultant-result-inner-card {
       background: #C1DBB3;
       border-radius: 18px;
       margin: 22px 22px 22px 22px;
@@ -335,11 +348,15 @@
       font-weight: 500;
       color: #075B5E;
    }
-   .bmc-result-inner-card > div, .amc-result-inner-card > div {
+   .bmc-result-inner-card > div, 
+   .amc-result-inner-card > div,
+   .consultant-result-inner-card > div {
       flex: 1;
       text-align: center;
    }
-   .bmc-result-expire, .amc-result-expire {
+   .bmc-result-expire, 
+   .amc-result-expire,
+   .consultant-result-expire {
       background: #fff;
       color: #d9534f;
       border-radius: 12px;
@@ -349,7 +366,9 @@
       margin-left: 10px;
       display: inline-block;
    }
-   .bmc-missing-doc, .amc-missing-doc {
+   .bmc-missing-doc, 
+   .amc-missing-doc,
+   .consultant-missing-doc {
       background: #fff;
       color: #d9534f;
       border-radius: 12px;
@@ -359,13 +378,17 @@
       margin-left: 10px;
       display: inline-block;
    }
-   .bmc-no-result, .amc-no-result {
+   .bmc-no-result, 
+   .amc-no-result,
+   .consultant-no-result {
       color: #fff;
       text-align: center;
       margin-top: 18px;
       font-size: 1.1rem;
    }
-   .bmc-search-icon-btn, .amc-search-icon-btn {
+   .bmc-search-icon-btn, 
+   .amc-search-icon-btn,
+   .consultant-search-icon-btn {
       position: absolute;
       right: 16px;
       top: 50%;
@@ -453,7 +476,7 @@
       <div class="aside-item" id="amc-agreement">AMC AGREEMENT</div>
       <div class="aside-item" id="bmc-agreement">BMC AGREEMENT</div>
       <div class="aside-item" id="input-service-agreement">INPUT SERVICES AGREEMENT</div>
-      <div class="aside-item">CONSULTANT AGREEMENT</div>
+      <div class="aside-item" id="consultant-agreement">CONSULTANT AGREEMENT</div>
       <div class="aside-item">COOK AGREEMENT</div>
       <div class="aside-item">DISTRIBUTER AGREEMENT</div>
       <div class="aside-item">INWARD TRANSPORT AGREEMENT</div>
@@ -536,6 +559,21 @@
             <div id="input-service-search-result-container"></div>
          </div>
       </div>
+      <!-- CONSULTANT AGREEMENT SEARCH CONTAINER -->
+      <div id="consultant-search-container" style="display: none; width: 100%;">
+         <div style="padding: 15px 20px 0 20px; margin-bottom: 10px; margin-top: 20px;">
+            <div style="position: relative; width: 100%;">
+               <input type="text" id="consultant-search-input" placeholder="SEARCH BY CATEGORY, CONTRACTOR"
+                  style="width: 100%; background: #FFEDDB; border: none; border-radius: 24px; padding: 12px 44px 12px 18px; font-size: 1rem; color: #000; outline: none; box-sizing: border-box; font-weight: 500;"
+                  onkeydown="if(event.key==='Enter'){document.getElementById('consultant-search-btn').click();}"
+               />
+               <button id="consultant-search-btn" class="consultant-search-icon-btn" tabindex="-1">
+                  <i class="fas fa-search"></i>
+               </button>
+            </div>
+            <div id="consultant-search-result-container"></div>
+         </div>
+      </div>
    </div>
 </div>
 {% endblock %}
@@ -570,6 +608,13 @@ document.addEventListener('DOMContentLoaded', function() {
     ];
     let selectedStatus = null;
 
+    function resetAllSearchResults() {
+        resetBmcSearchResults();
+        resetAmcSearchResults();
+        resetInputServiceSearchResults();
+        resetConsultantSearchResults();
+    }
+
     function resetBmcSearchResults() {
         document.getElementById('bmc-location-search').value = '';
         document.getElementById('bmc-search-result-container').innerHTML = '';
@@ -585,139 +630,207 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('input-service-search-result-container').innerHTML = '';
     }
 
+    function resetConsultantSearchResults() {
+        document.getElementById('consultant-search-input').value = '';
+        document.getElementById('consultant-search-result-container').innerHTML = '';
+    }
+
+    function hideAllSearchContainers() {
+        document.getElementById('amc-search-container').style.display = 'none';
+        document.getElementById('bmc-search-container').style.display = 'none';
+        document.getElementById('input-service-search-container').style.display = 'none';
+        document.getElementById('consultant-search-container').style.display = 'none';
+    }
+
+    function updateViewForm(agreementType) {
+        const viewForm = document.getElementById('view-form');
+        const viewFormText = document.getElementById('view-form-text');
+        
+        // Remove all active classes first
+        viewForm.classList.remove(
+            'amc-active', 
+            'bmc-active', 
+            'input-service-active',
+            'consultant-active'
+        );
+        
+        // Hide all search containers
+        hideAllSearchContainers();
+        
+        // Reset all search results
+        resetAllSearchResults();
+        
+        if (selectedStatus === 'COMPLETE' || selectedStatus === 'INCOMPLETE') {
+            // Add the appropriate active class
+            viewForm.classList.add(`${agreementType}-active`);
+            
+            // Update the form text
+            viewFormText.textContent = `${agreementType.replace('-', ' ').toUpperCase()} AGREEMENTS (STATUS = ${selectedStatus})`;
+            
+            // Show the appropriate search container
+            document.getElementById(`${agreementType}-search-container`).style.display = 'block';
+        } else {
+            viewFormText.textContent = 'Please click on the Agreement you are willing to see';
+        }
+    }
+
     selectable.forEach(card => {
         card.addEventListener('click', function() {
             selectable.forEach(c => c.classList.remove('selected'));
             this.classList.add('selected');
             selectedStatus = this.querySelector('.agreements-stat-label').textContent.trim().split(' ')[0].toUpperCase();
 
-            // If AMC AGREEMENT is active, rerender the card and reset results
-            const amcSearch = document.getElementById('amc-search-container');
-            const bmcSearch = document.getElementById('bmc-search-container');
-            const inputServiceSearch = document.getElementById('input-service-search-container');
+            // Check which agreement type is currently active and update accordingly
             const viewForm = document.getElementById('view-form');
-            const viewFormText = document.getElementById('view-form-text');
             
             if (viewForm.classList.contains('amc-active')) {
-                if (selectedStatus === 'COMPLETE' || selectedStatus === 'INCOMPLETE') {
-                    viewFormText.textContent = `AMC AGREEMENTS (STATUS = ${selectedStatus})`;
-                    amcSearch.style.display = "block";
-                } else {
-                    viewForm.classList.remove('amc-active');
-                    viewFormText.textContent = 'Please click on the Agreement you are willing to see';
-                    amcSearch.style.display = "none";
-                }
-                resetAmcSearchResults();
-            }
-            
-            if (viewForm.classList.contains('bmc-active')) {
-                if (selectedStatus === 'COMPLETE' || selectedStatus === 'INCOMPLETE') {
-                    viewFormText.textContent = `BMC AGREEMENTS (STATUS = ${selectedStatus})`;
-                    bmcSearch.style.display = "block";
-                } else {
-                    viewForm.classList.remove('bmc-active');
-                    viewFormText.textContent = 'Please click on the Agreement you are willing to see';
-                    bmcSearch.style.display = "none";
-                }
-                resetBmcSearchResults();
-            }
-            
-            if (viewForm.classList.contains('input-service-active')) {
-                if (selectedStatus === 'COMPLETE' || selectedStatus === 'INCOMPLETE') {
-                    viewFormText.textContent = `INPUT SERVICES AGREEMENTS (STATUS = ${selectedStatus})`;
-                    inputServiceSearch.style.display = "block";
-                } else {
-                    viewForm.classList.remove('input-service-active');
-                    viewFormText.textContent = 'Please click on the Agreement you are willing to see';
-                    inputServiceSearch.style.display = "none";
-                }
-                resetInputServiceSearchResults();
+                updateViewForm('amc');
+            } else if (viewForm.classList.contains('bmc-active')) {
+                updateViewForm('bmc');
+            } else if (viewForm.classList.contains('input-service-active')) {
+                updateViewForm('input-service');
+            } else if (viewForm.classList.contains('consultant-active')) {
+                updateViewForm('consultant');
             }
         });
     });
 
     document.getElementById('amc-agreement').addEventListener('click', function() {
-        const viewForm = document.getElementById('view-form');
-        const viewFormText = document.getElementById('view-form-text');
-        const amcSearch = document.getElementById('amc-search-container');
-        const bmcSearch = document.getElementById('bmc-search-container');
-        const inputServiceSearch = document.getElementById('input-service-search-container');
-        
-        // Hide other search containers
-        bmcSearch.style.display = "none";
-        inputServiceSearch.style.display = "none";
-        viewForm.classList.remove('bmc-active');
-        viewForm.classList.remove('input-service-active');
-        
-        // Show AMC if status is selected
-        if (selectedStatus === 'COMPLETE' || selectedStatus === 'INCOMPLETE') {
-            viewForm.classList.add('amc-active');
-            viewFormText.style.color = '#fff';
-            viewFormText.textContent = `AMC AGREEMENTS (STATUS = ${selectedStatus})`;
-            amcSearch.style.display = "block";
-        } else {
-            viewForm.classList.remove('amc-active');
-            viewFormText.style.color = '#fff';
-            viewFormText.textContent = 'Please click on the Agreement you are willing to see';
-            amcSearch.style.display = "none";
-        }
-        
-        // Reset AMC search input/results
-        resetAmcSearchResults();
+        updateViewForm('amc');
     });
 
     document.getElementById('bmc-agreement').addEventListener('click', function() {
-        const viewForm = document.getElementById('view-form');
-        const viewFormText = document.getElementById('view-form-text');
-        const bmcSearch = document.getElementById('bmc-search-container');
-        const inputServiceSearch = document.getElementById('input-service-search-container');
-        const amcSearch = document.getElementById('amc-search-container');
-        
-        // Hide other search containers
-        amcSearch.style.display = "none";
-        inputServiceSearch.style.display = "none";
-        viewForm.classList.remove('amc-active');
-        viewForm.classList.remove('input-service-active');
-        
-        if (selectedStatus === 'COMPLETE' || selectedStatus === 'INCOMPLETE') {
-            viewForm.classList.add('bmc-active');
-            viewFormText.style.color = '#fff';
-            viewFormText.textContent = `BMC AGREEMENTS (STATUS = ${selectedStatus})`;
-            bmcSearch.style.display = "block";
-        } else {
-            viewForm.classList.remove('bmc-active');
-            viewFormText.style.color = '#fff';
-            viewFormText.textContent = 'Please click on the Agreement you are willing to see';
-            bmcSearch.style.display = "none";
-        }
-        resetBmcSearchResults();
+        updateViewForm('bmc');
     });
 
     document.getElementById('input-service-agreement').addEventListener('click', function() {
-        const viewForm = document.getElementById('view-form');
-        const viewFormText = document.getElementById('view-form-text');
-        const inputServiceSearch = document.getElementById('input-service-search-container');
-        const bmcSearch = document.getElementById('bmc-search-container');
-        const amcSearch = document.getElementById('amc-search-container');
+        updateViewForm('input-service');
+    });
+
+    document.getElementById('consultant-agreement').addEventListener('click', function() {
+        updateViewForm('consultant');
+    });
+
+    // Consultant Search button handler
+    document.getElementById('consultant-search-btn').addEventListener('click', function() {
+        const input = document.getElementById('consultant-search-input');
+        const query = input.value.trim();
+        const status = selectedStatus ? selectedStatus : '';
+        const resultDiv = document.getElementById('consultant-search-result-container');
+        resultDiv.innerHTML = '';
         
-        // Hide other search containers
-        amcSearch.style.display = "none";
-        bmcSearch.style.display = "none";
-        viewForm.classList.remove('amc-active');
-        viewForm.classList.remove('bmc-active');
-        
-        if (selectedStatus === 'COMPLETE' || selectedStatus === 'INCOMPLETE') {
-            viewForm.classList.add('input-service-active');
-            viewFormText.style.color = '#fff';
-            viewFormText.textContent = `INPUT SERVICES AGREEMENTS (STATUS = ${selectedStatus})`;
-            inputServiceSearch.style.display = "block";
-        } else {
-            viewForm.classList.remove('input-service-active');
-            viewFormText.style.color = '#fff';
-            viewFormText.textContent = 'Please click on the Agreement you are willing to see';
-            inputServiceSearch.style.display = "none";
+        if (query.length === 0) {
+            resultDiv.innerHTML = '<div class="consultant-no-result">Please enter a category or consultant.</div>';
+            return;
         }
-        resetInputServiceSearchResults();
+
+        // Split query by comma for category and consultant
+        let category = '';
+        let consultant = '';
+        const parts = query.split(',');
+        if (parts.length > 0) category = parts[0].trim();
+        if (parts.length > 1) consultant = parts.slice(1).join(',').trim();
+
+        const params = new URLSearchParams();
+        if (category) params.append('category', category);
+        if (consultant) params.append('consultant', consultant);
+        if (status) params.append('status', status);
+
+        fetch(`/consultant/search/viewer/?${params.toString()}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.results && data.results.length > 0) {
+                    let html = '';
+                    data.results.forEach(item => {
+                        // Create a unique ID for each PDF container
+                        const pdfContainerId = `pdf-container-consultant-${item.id}`;
+                        
+                        // Check if status is incomplete to show missing document message
+                        const missingDocMessage = (item.document_status && item.document_status.toUpperCase() === 'INCOMPLETE') 
+                            ? `<div style="padding:10px 0;width:100%;text-align:left;">
+                                  <span>MISSING DOCUMENT:<span class="consultant-missing-doc">${item.pending_document}</span></span>
+                               </div>`
+                            : '';
+                        
+                        html += `
+<div class="consultant-result-outer-card" style="background:#fff;">
+    <div class="data-field-container">
+        <div class="data-field">CATEGORY</div>
+        <div class="data-field">CONSULTANT</div>
+        <div class="data-field">AGREEMENT DATE</div>
+        <div class="data-field">DOCUMENT STATUS</div>
+    </div>
+    <div class="consultant-result-row" style="background:#fff; border-radius:0; padding:18px 0 0 0; font-size:1.1rem">
+        <div class="consultant-result-value" style="flex:1;text-align:center;">${item.category || '-'}</div>
+        <div class="consultant-result-value" style="flex:1;text-align:center;">${item.consultant_name || '-'}</div>
+        <div class="consultant-result-value" style="flex:1;text-align:center;">${formatDateDMY(item.agreement_date) || '-'}</div>
+        <div class="consultant-result-value" style="flex:1;text-align:center;">${item.document_status || '-'}</div>
+    </div>
+    <div class="consultant-result-inner-card" style="display:flex;flex-direction:row;align-items:center;gap:2px;">
+        <div style="flex:2;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;height:220px;padding-left:10px;">
+            ${missingDocMessage}
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Agreement Start Date: ${formatDateDMY(item.start_date)}</span>
+            </div>
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Agreement End Date: ${formatDateDMY(item.end_date)}</span>
+            </div>
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Expire in: <span class="consultant-result-expire">${item.expire_months !== undefined ? item.expire_months : '-'} month${item.expire_months == 1 ? '' : 's'} from today</span></span>
+            </div>
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Scanned & Inserted By: <span class="consultant-result-expire" style="color:#d9534f;">${item.created_by}</span></span>
+            </div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+            <div class="bmc-preview-card" style="width:180px;height:220px;">
+                ${item.document_url ? `
+                <div id="${pdfContainerId}" class="pdf-viewer-container" style="width:100%;height:100%;">
+                    <iframe class="bmc-preview-pdf" src="${item.document_url}#toolbar=0&navpanes=0&scrollbar=0" style="width:100%;height:100%;border:none;"></iframe>
+                </div>
+                ` : `
+                <div class="bmc-preview-placeholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">NO PDF</div>
+                `}
+            </div>
+            ${item.document_url ? `
+            <a href="${item.document_url}" target="_blank" class="pdf-view-button">VIEW IN FULL PAGE</a>
+            ` : ''}
+        </div>
+    </div>
+</div>
+                        `;
+                    });
+                    resultDiv.innerHTML = html;
+
+                    // Add fallback for PDFs that can't be embedded
+                    document.querySelectorAll('.bmc-preview-pdf').forEach(iframe => {
+                        iframe.onload = function() {
+                            try {
+                                // Check if we can access the iframe content
+                                if (iframe.contentDocument || iframe.contentWindow.document) {
+                                    // PDF loaded successfully
+                                }
+                            } catch (e) {
+                                // If we get a security error, show a link instead
+                                const container = iframe.parentElement;
+                                container.innerHTML = `
+                                    <div style="text-align: center; padding: 20px; width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                                        <p>PDF cannot be previewed</p>
+                                        <a href="${iframe.src}" target="_blank" class="pdf-view-button">
+                                            VIEW PDF IN NEW TAB
+                                        </a>
+                                    </div>
+                                `;
+                            }
+                        };
+                    });
+                } else {
+                    resultDiv.innerHTML = '<div class="consultant-no-result">No consultant agreements found.</div>';
+                }
+            })
+            .catch(() => {
+                resultDiv.innerHTML = '<div class="consultant-no-result">Error fetching consultant agreements.</div>';
+            });
     });
 
     document.getElementById('bmc-search-btn').addEventListener('click', function() {
@@ -945,48 +1058,40 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.getElementById('input-service-search-btn').addEventListener('click', function() {
-    const input = document.getElementById('input-service-product-search');
-    console.log("The input is", input)
-    const query = input.value.trim();
-    console.log("The query is", query)
-    const status = selectedStatus ? selectedStatus : '';
-    console.log("The status is", status)
-    const resultDiv = document.getElementById('input-service-search-result-container');
-    resultDiv.innerHTML = '';
+        const input = document.getElementById('input-service-product-search');
+        const query = input.value.trim();
+        const status = selectedStatus ? selectedStatus : '';
+        const resultDiv = document.getElementById('input-service-search-result-container');
+        resultDiv.innerHTML = '';
 
-    if (!query) {
-        resultDiv.innerHTML = '<div class="bmc-no-result">Please enter a product.</div>';
-        return;
-    }
-    const params = new URLSearchParams();
-    let contractor = '';
-    let product = '';
-    const parts = query.split(',');
-    if (parts.length > 0) contractor = parts[0].trim();
-    if (parts.length > 1) product = parts.slice(1).join(',').trim();
+        if (!query) {
+            resultDiv.innerHTML = '<div class="bmc-no-result">Please enter a product.</div>';
+            return;
+        }
+        const params = new URLSearchParams();
+        let contractor = '';
+        let product = '';
+        const parts = query.split(',');
+        if (parts.length > 0) contractor = parts[0].trim();
+        if (parts.length > 1) product = parts.slice(1).join(',').trim();
 
-    if (contractor) params.append('contractor', contractor);
-    if (product) params.append('product', product);
-    if (status) params.append('status', status);
+        if (contractor) params.append('contractor', contractor);
+        if (product) params.append('product', product);
+        if (status) params.append('status', status);
 
-    fetch(`/input-service/search/viewer/?${params.toString()}`)
-        .then(response => {
-            console.log(response)
-            return response.json()})
-        .then(data => {
-            // Pretty print the response data in the console
-            console.log('%c[INPUT SERVICES SEARCH] Response:', 'color: #0a7c80; font-weight: bold;', data);
-
-            if (data.results && data.results.length > 0) {
-                let html = '';
-                data.results.forEach(item => {
-                    const pdfContainerId = `pdf-container-input-service-${item.id}`;
-                    const missingDocMessage = (item.document_status && item.document_status.toUpperCase() === 'INCOMPLETE') 
-                        ? `<div style="padding:10px 0;width:100%;text-align:left;">
-                              <span>MISSING DOCUMENT:<span class="bmc-missing-doc">${item.pending_document}</span></span>
-                           </div>`
-                        : '';
-                    html += `
+        fetch(`/input-service/search/viewer/?${params.toString()}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.results && data.results.length > 0) {
+                    let html = '';
+                    data.results.forEach(item => {
+                        const pdfContainerId = `pdf-container-input-service-${item.id}`;
+                        const missingDocMessage = (item.document_status && item.document_status.toUpperCase() === 'INCOMPLETE') 
+                            ? `<div style="padding:10px 0;width:100%;text-align:left;">
+                                  <span>MISSING DOCUMENT:<span class="bmc-missing-doc">${item.pending_document}</span></span>
+                               </div>`
+                            : '';
+                        html += `
 <div class="bmc-result-outer-card" style="background:#fff;">
     <div class="data-field-container">
         <div class="data-field">AGREEMENT DATE</div>
@@ -1032,39 +1137,39 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </div>
 </div>
-                    `;
-                });
-                resultDiv.innerHTML = html;
+                        `;
+                    });
+                    resultDiv.innerHTML = html;
 
-                // Add fallback for PDFs that can't be embedded
-                document.querySelectorAll('.bmc-preview-pdf').forEach(iframe => {
-                    iframe.onload = function() {
-                        try {
-                            if (iframe.contentDocument || iframe.contentWindow.document) {
-                                // PDF loaded successfully
+                    // Add fallback for PDFs that can't be embedded
+                    document.querySelectorAll('.bmc-preview-pdf').forEach(iframe => {
+                        iframe.onload = function() {
+                            try {
+                                if (iframe.contentDocument || iframe.contentWindow.document) {
+                                    // PDF loaded successfully
+                                }
+                            } catch (e) {
+                                const container = iframe.parentElement;
+                                container.innerHTML = `
+                                    <div style="text-align: center; padding: 20px; width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                                        <p>PDF cannot be previewed</p>
+                                        <a href="${iframe.src}" target="_blank" class="pdf-view-button">
+                                            VIEW PDF IN NEW TAB
+                                        </a>
+                                    </div>
+                                `;
                             }
-                        } catch (e) {
-                            const container = iframe.parentElement;
-                            container.innerHTML = `
-                                <div style="text-align: center; padding: 20px; width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-                                    <p>PDF cannot be previewed</p>
-                                    <a href="${iframe.src}" target="_blank" class="pdf-view-button">
-                                        VIEW PDF IN NEW TAB
-                                    </a>
-                                </div>
-                            `;
-                        }
-                    };
-                });
-            } else {
-                resultDiv.innerHTML = '<div class="bmc-no-result">No results found.</div>';
-            }
-        })
-        .catch((error) => {
-            console.error('[INPUT SERVICES SEARCH] Fetch error:', error);
-            resultDiv.innerHTML = '<div class="bmc-no-result">Error fetching results.</div>';
-        });
-});
+                        };
+                    });
+                } else {
+                    resultDiv.innerHTML = '<div class="bmc-no-result">No results found.</div>';
+                }
+            })
+            .catch((error) => {
+                console.error('[INPUT SERVICES SEARCH] Fetch error:', error);
+                resultDiv.innerHTML = '<div class="bmc-no-result">Error fetching results.</div>';
+            });
+    });
 });
 </script>
 {% endblock %}

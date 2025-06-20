@@ -1057,8 +1057,473 @@ def input_services_stats(request):
         "incomplete": incomplete
     })
 
+# --------------------ALL INPUT SERVICE AGREEMENT ENDS HERE---------------------------------
+
+def consultant_create(request):
+    if request.method == "POST":
+        try:
+            with transaction.atomic():
+                # Get all required fields from POST
+                category = request.POST.get("category")
+                contractor = request.POST.get("contractor")
+                pan = request.POST.get("pan")
+                type_of_agreement = request.POST.get("type_of_agreement")
+                agreement_date = request.POST.get("agreement_date")
+                start_date = request.POST.get("start_date")
+                end_date = request.POST.get("end_date")
+                tenure_months = request.POST.get("tenure_months")
+                lock_in_period = request.POST.get("lock_in_period")
+                monthly_payout = request.POST.get("monthly_payout")
+                document_status = request.POST.get("document_status")
+                document_pending = request.POST.get("document_pending")
+                document_file = request.FILES.get("document")
+
+                # Parse dates
+                start_date_obj = datetime.strptime(start_date, "%Y-%m-%d").date() if start_date else None
+                end_date_obj = datetime.strptime(end_date, "%Y-%m-%d").date() if end_date else None
+
+                # Determine if agreement is expired
+                today = date.today()
+                is_expired = end_date_obj and end_date_obj < today
+
+                # Set base folder: "Ongoing" or "Expired"
+                base_folder = "Expired" if is_expired else "Ongoing"
+
+                # Agreement type folder
+                agreement_type_folder = "Consultant Agreements"
+
+                # Use status as a folder (COMPLETE/INCOMPLETE/EXPIRE)
+                status_folder = document_status.upper() if document_status else "UNKNOWN"
+
+                # Agreement name from category (or file name if you prefer)
+                agreement_name = category.strip() if category else (os.path.splitext(document_file.name)[0] if document_file else "UnknownAgreement")
+
+                # Date folder
+                date_folder = f"{start_date}-{end_date}"
+
+                # File name (use category as file name if possible)
+                file_base_name = f"{agreement_name}.pdf" if document_file else "document.pdf"
+
+                # Build the full path: Agreements/Ongoing/Consultant Agreements/STATUS/AGREEMENT_NAME/STARTDATE-ENDDATE/AGREEMENT_NAME.pdf
+                upload_folder = os.path.join(
+                    "Agreements",
+                    base_folder,
+                    agreement_type_folder,
+                    status_folder,
+                    agreement_name,
+                    date_folder
+                )
+
+                # Ensure the folder exists in MEDIA_ROOT
+                full_upload_path = os.path.join(settings.MEDIA_ROOT, upload_folder)
+                os.makedirs(full_upload_path, exist_ok=True)
+
+                # Save the file to the correct location
+                if document_file:
+                    file_path = os.path.join(upload_folder, file_base_name)
+                    absolute_file_path = os.path.join(settings.MEDIA_ROOT, file_path)
+                    with open(absolute_file_path, 'wb+') as destination:
+                        for chunk in document_file.chunks():
+                            destination.write(chunk)
+                else:
+                    file_path = None
+
+                # Save the ConsultantAgreement instance
+                consultant_agreement = ConsultantAgreement.objects.create(
+                    category=category,
+                    contractor=contractor,
+                    pan=pan,
+                    type_of_agreement=type_of_agreement,
+                    agreement_date=agreement_date,
+                    start_date=start_date,
+                    end_date=end_date,
+                    tenure_months=tenure_months,
+                    lock_in_period=lock_in_period,
+                    monthly_payout=monthly_payout,
+                    document_status=document_status,
+                    document_pending=document_pending,
+                    document=file_path,  # Save relative path to the file
+                    created_by=request.user if request.user.is_authenticated else None
+                )
+                print("Saved Consultant Agreement:", consultant_agreement)
+
+            return HttpResponse("SUBMIT SUCCESSFULLY")
+        except Exception as e:
+            print("Error saving Consultant Agreement:", e)
+            return HttpResponse(f"Error: {e}", status=500)
+    return HttpResponse("Only POST supported for now.")
 
 
+
+def consultant_search(request):
+    category = request.GET.get('category', '').strip()
+    print("The category is ", category)
+    contractor = request.GET.get('contractor', '').strip()
+    print("The contractor is ", contractor)
+    print("consultant_search GET params:", {"category": category, "contractor": contractor})
+    qs = ConsultantAgreement.objects.filter(category__icontains=category, contractor__icontains=contractor)
+    print("The query string is", qs)
+    results = []
+    for obj in qs:
+        if obj.document and obj.document.path:
+            try:
+                reader = PdfReader(obj.document.path)
+                page_count = len(reader.pages)
+                print(f"ConsultantAgreement ID {obj.id} document has {page_count} pages")
+            except Exception as e:
+                print(f"Error reading PDF for ConsultantAgreement ID {obj.id}: {e}")
+        results.append({
+            "id": obj.id,
+            "category": obj.category,
+            "contractor": obj.contractor,
+            "document_status": obj.document_status,
+            "document_pending": obj.document_pending,
+            "document_url": obj.document.url if obj.document else "",
+            "document_name": obj.document.name.split('/')[-1] if obj.document else "",
+        })
+    print("consultant_search results:", results)
+    return JsonResponse({"results": results})
+
+
+@csrf_exempt
+def consultant_edit_merge(request, pk):
+    """
+    Merge a new PDF into the existing Consultant Agreement PDF.
+    If the agreement is now expired (based on end_date), move the merged PDF to the Expired folder.
+    If the status changes (e.g., INCOMPLETE -> COMPLETE), move the merged PDF to the new status folder and remove the old status folder if empty.
+    The folder structure is maintained as:
+    Agreements/{Ongoing|Expired}/Consultant Agreements/{STATUS}/{Agreement Name}/{STARTDATE}-{ENDDATE}/
+    """
+    if request.method == "POST":
+        print("---- consultant_edit_merge POST ----")
+        print("request.POST:", dict(request.POST))
+        print("request.FILES:", request.FILES)
+        consultant = get_object_or_404(ConsultantAgreement, pk=pk)
+        print(f"Fetched ConsultantAgreement ID {pk}: {consultant}")
+
+        new_status = request.POST.get("document_status", consultant.document_status)
+        print("New status:", new_status)
+        new_pending_document = request.POST.get("pending_document", consultant.document_pending)
+        print("New pending_document:", new_pending_document)
+        new_pdf_file = request.FILES.get("insert_pdf")
+        print("New PDF file:", new_pdf_file.name if new_pdf_file else "None")
+
+        if not new_pdf_file:
+            print("No PDF uploaded")
+            return JsonResponse({"error": "No PDF uploaded"}, status=400)
+
+        temp_dir = None
+        try:
+            with transaction.atomic():
+                # Verify we have an existing document
+                if not consultant.document:
+                    print("Error: No existing document to merge with")
+                    return JsonResponse({"error": "No existing document to merge with"}, status=400)
+
+                existing_file_path = consultant.document.path
+                existing_filename = os.path.basename(consultant.document.name)
+                print(f"Existing file path: {existing_file_path}")
+                print(f"Existing filename: {existing_filename}")
+
+                # Initialize PDF writer for merged content
+                writer = PdfWriter()
+                print("Initialized PdfWriter for merging.")
+
+                # Load existing PDF pages
+                print("Loading existing PDF...")
+                existing_pdf = PdfReader(existing_file_path)
+                original_page_count = len(existing_pdf.pages)
+                print(f"Existing PDF has {original_page_count} pages")
+                for page in existing_pdf.pages:
+                    writer.add_page(page)
+                print(f"Added {original_page_count} existing pages to writer")
+
+                # Load and add new PDF pages
+                print("Loading new PDF to append...")
+                new_pdf = PdfReader(new_pdf_file)
+                new_page_count = len(new_pdf.pages)
+                print(f"New PDF has {new_page_count} pages")
+                for page in new_pdf.pages:
+                    writer.add_page(page)
+                print(f"Added {new_page_count} new pages to writer")
+
+                # Write merged content to a temp file
+                temp_dir = tempfile.mkdtemp()
+                temp_pdf_path = os.path.join(temp_dir, existing_filename)
+                with open(temp_pdf_path, 'wb') as temp_f:
+                    writer.write(temp_f)
+                print(f"Created merged PDF with {len(writer.pages)} total pages at {temp_pdf_path}")
+
+                # Determine if agreement is now expired
+                today = date.today()
+                end_date_obj = consultant.end_date if isinstance(consultant.end_date, date) else datetime.strptime(str(consultant.end_date), "%Y-%m-%d").date()
+                is_expired = end_date_obj and end_date_obj < today
+                print(f"Agreement expired? {is_expired} (end_date: {consultant.end_date}, today: {today})")
+
+                # Build the correct folder structure
+                base_folder = "Expired" if is_expired else "Ongoing"
+                agreement_type_folder = "Consultant Agreements"
+                status_folder = new_status.upper() if new_status else "UNKNOWN"
+                agreement_name = os.path.splitext(existing_filename)[0]
+                date_folder = f"{consultant.start_date}-{consultant.end_date}"
+                upload_folder = os.path.join(
+                    "Agreements",
+                    base_folder,
+                    agreement_type_folder,
+                    status_folder,
+                    agreement_name,
+                    date_folder
+                )
+                full_upload_path = os.path.join(settings.MEDIA_ROOT, upload_folder)
+                new_file_path = os.path.join(full_upload_path, existing_filename)
+                print(f"Final upload folder: {upload_folder}")
+                print(f"Full upload path: {full_upload_path}")
+                print(f"New file path: {new_file_path}")
+
+                # Only now create the final folder and move the file
+                os.makedirs(full_upload_path, exist_ok=True)
+                shutil.move(temp_pdf_path, new_file_path)
+                print(f"Moved merged PDF to {new_file_path}")
+
+                # Remove old file if it's in a different location
+                if os.path.abspath(existing_file_path) != os.path.abspath(new_file_path):
+                    print(f"Moving file from {existing_file_path} to {new_file_path}")
+                    if os.path.exists(existing_file_path):
+                        os.remove(existing_file_path)
+                    # Clean up old empty folders up to status level
+                    try:
+                        old_date_folder = os.path.dirname(existing_file_path)
+                        old_agreement_folder = os.path.dirname(old_date_folder)
+                        old_status_folder = os.path.dirname(old_agreement_folder)
+                        if os.path.isdir(old_date_folder) and not os.listdir(old_date_folder):
+                            os.rmdir(old_date_folder)
+                        if os.path.isdir(old_agreement_folder) and not os.listdir(old_agreement_folder):
+                            os.rmdir(old_agreement_folder)
+                        if os.path.isdir(old_status_folder) and not os.listdir(old_status_folder):
+                            os.rmdir(old_status_folder)
+                        print("Cleaned up old empty folders if needed.")
+                    except Exception as cleanup_err:
+                        print("Cleanup error:", cleanup_err)
+
+                # Update the document field to the new relative path if location changed
+                rel_file_path = os.path.relpath(new_file_path, settings.MEDIA_ROOT)
+                if consultant.document.name != rel_file_path.replace("\\", "/"):
+                    consultant.document.name = rel_file_path.replace("\\", "/")
+                    print(f"Updated consultant.document.name to {consultant.document.name}")
+
+                # Update the model to reflect the changes
+                consultant.document_status = new_status
+                consultant.document_pending = new_pending_document
+                consultant.save()
+                print("PDF successfully merged and saved with correct folder structure")
+                print(f"Final file location: {new_file_path}")
+
+                return JsonResponse({"success": True, "new_page_count": len(writer.pages)})
+
+        except Exception as e:
+            print("Exception during PDF merge:", str(e))
+            if temp_dir and os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+            if 'full_upload_path' in locals() and os.path.exists(full_upload_path):
+                try:
+                    shutil.rmtree(full_upload_path)
+                except Exception:
+                    pass
+            return JsonResponse({"error": str(e)}, status=500)
+        finally:
+            if temp_dir and os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+
+    print("Request method not allowed:", request.method)
+    return JsonResponse({"error": "Only POST allowed"}, status=405)
+
+
+@xframe_options_exempt
+def consultant_search_viewer(request):
+    try:
+        category = request.GET.get('category', '').strip().upper()
+        contractor = request.GET.get('contractor', '').strip()
+        status = request.GET.get('status', '').strip().upper()
+
+        print("[consultant_search_viewer] GET params:")
+        print("  category:", category)
+        print("  contractor:", contractor)
+        print("  status:", status)
+
+        qs = ConsultantAgreement.objects.all()
+        if category:
+            qs = qs.filter(category__iexact=category)
+        if contractor:
+            qs = qs.filter(contractor__icontains=contractor)
+        if status:
+            qs = qs.filter(document_status__iexact=status)
+
+        def format_dmy(date_obj):
+            if not date_obj:
+                return ""
+            return date_obj.strftime("%d/%m/%y")
+
+        results = []
+        for obj in qs:
+            start = obj.start_date
+            end = obj.end_date
+            expire_months = months_between_today_and_end(end) if end else "-"
+            if obj.created_by:
+                creator = f"{obj.created_by.first_name or ''} {obj.created_by.last_name or ''}".strip()
+                if not creator:
+                    creator = obj.created_by.email
+            else:
+                creator = ""
+            results.append({
+                "id": obj.id,
+                "agreement_date": format_dmy(getattr(obj, "agreement_date", None)),
+                "category": getattr(obj, "category", ""),
+                "contractor": obj.contractor,
+                "document_status": obj.document_status,
+                "pending_document": getattr(obj, "document_pending", ""),
+                "start_date": format_dmy(start) if start else "",
+                "end_date": format_dmy(end) if end else "",
+                "expire_months": expire_months,
+                "created_by": creator,
+                "document_url": obj.document.url if obj.document else "",
+            })
+        print("[consultant_search_viewer] Results:")
+        import pprint
+        pprint.pprint(results)
+        return JsonResponse({"results": results})
+    except Exception as e:
+        print(f"[consultant_search_viewer] Exception occurred: {e}")
+        return JsonResponse({"error": str(e)}, status=500)
+
+# ----------------ALL CONSULTANT AGREEMENT ENDS HERE---------------------
+
+
+def cook_create(request):
+    if request.method == "POST":
+        try:
+            with transaction.atomic():
+                # Get all required fields from POST
+                zone = request.POST.get("zone")
+                location = request.POST.get("location")
+                contractor = request.POST.get("contractor")
+                pan = request.POST.get("pan")
+                type_of_agreement = request.POST.get("type_of_agreement")
+                agreement_date = request.POST.get("agreement_date")
+                start_date = request.POST.get("start_date")
+                end_date = request.POST.get("end_date")
+                tenure_months = request.POST.get("tenure_months")
+                lock_in_period = request.POST.get("lock_in_period")
+                monthly_payout = request.POST.get("monthly_payout")
+                document_status = request.POST.get("document_status")
+                document_pending = request.POST.get("document_pending")
+                document_file = request.FILES.get("document")
+
+                # Parse dates
+                agreement_date_obj = datetime.strptime(agreement_date, "%Y-%m-%d").date() if agreement_date else None
+                start_date_obj = datetime.strptime(start_date, "%Y-%m-%d").date() if start_date else None
+                end_date_obj = datetime.strptime(end_date, "%Y-%m-%d").date() if end_date else None
+
+                # Determine if agreement is expired
+                today = date.today()
+                is_expired = end_date_obj and end_date_obj < today
+
+                # Set base folder: "Ongoing" or "Expired"
+                base_folder = "Expired" if is_expired else "Ongoing"
+
+                # Agreement type folder
+                agreement_type_folder = "Cook Agreements"
+
+                # Use status as a folder (COMPLETE/INCOMPLETE/EXPIRE)
+                status_folder = document_status.upper() if document_status else "UNKNOWN"
+
+                # Agreement name from contractor (or file name if you prefer)
+                agreement_name = contractor.strip() if contractor else (os.path.splitext(document_file.name)[0] if document_file else "UnknownAgreement")
+
+                # Date folder
+                date_folder = f"{start_date}-{end_date}"
+
+                # File name (use contractor as file name if possible)
+                file_base_name = f"{agreement_name}.pdf" if document_file else "document.pdf"
+
+                # Build the full path: Agreements/Ongoing/Cook Agreements/STATUS/AGREEMENT_NAME/STARTDATE-ENDDATE/AGREEMENT_NAME.pdf
+                upload_folder = os.path.join(
+                    "Agreements",
+                    base_folder,
+                    agreement_type_folder,
+                    status_folder,
+                    agreement_name,
+                    date_folder
+                )
+
+                # Ensure the folder exists in MEDIA_ROOT
+                full_upload_path = os.path.join(settings.MEDIA_ROOT, upload_folder)
+                os.makedirs(full_upload_path, exist_ok=True)
+
+                # Save the file to the correct location
+                if document_file:
+                    file_path = os.path.join(upload_folder, file_base_name)
+                    absolute_file_path = os.path.join(settings.MEDIA_ROOT, file_path)
+                    with open(absolute_file_path, 'wb+') as destination:
+                        for chunk in document_file.chunks():
+                            destination.write(chunk)
+                else:
+                    file_path = None
+
+                # Save the CookAgreement instance
+                cook_agreement = CookAgreement.objects.create(
+                    zone=zone,
+                    location=location,
+                    contractor=contractor,
+                    pan=pan,
+                    type_of_agreement=type_of_agreement,
+                    agreement_date=agreement_date_obj,
+                    start_date=start_date_obj,
+                    end_date=end_date_obj,
+                    tenure_months=tenure_months,
+                    lock_in_period=lock_in_period,
+                    monthly_payout=monthly_payout,
+                    document_status=document_status,
+                    document_pending=document_pending,
+                    document=file_path,  # Save relative path to the file
+                    created_by=request.user if request.user.is_authenticated else None
+                )
+                print("Saved Cook Agreement:", cook_agreement)
+
+            return HttpResponse("SUBMIT SUCCESSFULLY")
+        except Exception as e:
+            print("Error saving Cook Agreement:", e)
+            return HttpResponse(f"Error: {e}", status=500)
+    return HttpResponse("Only POST supported for now.")
+
+def cook_search(request):
+    location = request.GET.get('location', '').strip()
+    print("The location is ", location)
+    contractor = request.GET.get('contractor', '').strip()
+    print("The contractor is ", contractor)
+    print("cook_search GET params:", {"location": location, "contractor": contractor})
+    qs = CookAgreement.objects.filter(location__icontains=location, contractor__icontains=contractor)
+    print("The query string is", qs)
+    results = []
+    for obj in qs:
+        if obj.document and obj.document.path:
+            try:
+                reader = PdfReader(obj.document.path)
+                page_count = len(reader.pages)
+                print(f"CookAgreement ID {obj.id} document has {page_count} pages")
+            except Exception as e:
+                print(f"Error reading PDF for CookAgreement ID {obj.id}: {e}")
+        results.append({
+            "id": obj.id,
+            "zone": obj.zone,
+            "location": obj.location,
+            "contractor": obj.contractor,
+            "document_status": obj.document_status,
+            "document_pending": obj.document_pending,
+            "document_url": obj.document.url if obj.document else "",
+            "document_name": obj.document.name.split('/')[-1] if obj.document else "",
+        })
+    print("cook_search results:", results)
+    return JsonResponse({"results": results})
 
 def login(request):
     if request.method == "POST":

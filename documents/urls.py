@@ -18,7 +18,7 @@ urlpatterns = [
     path('bmc/edit-merge/<int:pk>/', bmc_edit_merge, name='bmc-edit-merge'),
     path('bmc/create', bmc_create, name="bmc-create"),
     path('bmc/search/', bmc_search, name='bmc-search'),
-    path('bmc/search/viewer/', bmc_search_viewer, name='bmc-search'),
+    path('bmc/search/viewer/', bmc_search_viewer, name='bmc-search-viewer'),
     path('bmc/stats/', bmc_stats, name='bmc-stats'),
 
     # ----------all input services agreement urls------------
@@ -28,9 +28,21 @@ urlpatterns = [
     path('input_services/stats/', input_services_stats, name='input_services-stats'),
     path('input-service/search/viewer/', input_services_search_viewer, name='input_services_search_viewer'),
 
+    # ----------all consultant agreement urls-----------------
 
+    path('consultant/create/', consultant_create, name="consultant-create"),
+    path('consultant/search/', consultant_search, name='consultant-search'),
+    path('consultant/edit-merge/<int:pk>/', consultant_edit_merge, name="consultant-edit-merge"),
+    path('consultant/search/viewer/', consultant_search_viewer, name='consultant_search_viewer'),
     path('consultant/stats/', bmc_stats, name='bmc-stats'),
+
+    # ----------all cook agreement ulrs-----------------------
+    
+    path('cook/create/', cook_create, name='cook-create'),
+    path('cook/search/', cook_search, name='cook-search'),
     path('cook/stats/', bmc_stats, name='bmc-stats'),
+
+    
     path('distributer/stats/', bmc_stats, name='bmc-stats'),
     path('milk_sale/stats/', bmc_stats, name='bmc-stats'),
     path('mcc/stats/', bmc_stats, name='bmc-stats'),
