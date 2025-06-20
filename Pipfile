@@ -10,6 +10,7 @@ pillow = "*"
 pypdf2 = "*"
 python-dateutil = "*"
 python-dotenv = "*"
+openpyxl = "*"
 
 [dev-packages]
 
