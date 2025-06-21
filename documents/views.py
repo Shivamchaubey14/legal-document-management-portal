@@ -29,6 +29,16 @@ import os
 from django.conf import settings
 from django.views.decorators.clickjacking import xframe_options_exempt
 from dateutil.relativedelta import relativedelta
+from django.contrib.auth.views import PasswordResetView, PasswordResetConfirmView
+from django.urls import reverse_lazy
+from django.shortcuts import render
+from django.contrib import messages
+from django.core.mail import send_mail
+from django.conf import settings
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.forms import SetPasswordForm
 
 # A utility function to get the number of months remaining to tell user how many months have left to expire.
 def months_between_today_and_end(end_date):
@@ -1765,6 +1775,96 @@ def logout_view(request):
     print(logout(request))
     return redirect('login')
 
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.core.mail import send_mail
+from django.shortcuts import render, redirect
+from django.contrib.sites.shortcuts import get_current_site
+from django.template.loader import render_to_string
+from django.urls import reverse
+from .models import CustomUser
+
+def password_reset_request(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        try:
+            user = CustomUser.objects.get(email=email)
+            
+            # Generate token and uid
+            token = default_token_generator.make_token(user)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            
+            # Build reset link
+            current_site = get_current_site(request)
+            reset_url = reverse('password_reset_confirm', kwargs={
+                'uidb64': uid,
+                'token': token
+            })
+            reset_link = f"{request.scheme}://{current_site.domain}{reset_url}"
+            
+            # Prepare email
+            subject = "Password Reset Request"
+            message = render_to_string('password_reset_email.html', {
+                'user': user,
+                'reset_link': reset_link,
+                'site_name': current_site.name,
+            })
+            
+            # Send email
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+                fail_silently=False,
+            )
+            
+            return render(request, 'password_reset_request.html', {'show_success': True})
+            
+        except CustomUser.DoesNotExist:
+            # Email doesn't exist, but we don't reveal this to prevent email enumeration
+            return render(request, 'password_reset_request.html', {'show_success': True})
+    
+    return render(request, 'password_reset_request.html')
+
+# views.py
+from django.contrib.auth import get_user_model
+from django.utils.encoding import force_str
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.forms import SetPasswordForm
+def password_reset_confirm(request, uidb64, token):
+    User = get_user_model()
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+        
+        if default_token_generator.check_token(user, token):
+            if request.method == 'POST':
+                form = SetPasswordForm(user, request.POST)
+                if form.is_valid():
+                    form.save()
+                    return redirect('password_reset_complete')
+            else:
+                form = SetPasswordForm(user)
+            
+            return render(request, 'password_reset_confirm.html', {'form': form})
+            
+        return render(request, 'password_reset_invalid.html')
+        
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        return render(request, 'password_reset_invalid.html')
+
+def password_reset_complete(request):
+    return render(request, 'password_reset_complete.html')
+
+
+def password_reset_view(request):
+    return render(request, 'password_reset.html')
+
+def password_reset_complete(request):
+    return render(request, 'password_reset_complete.html')
+
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
@@ -1778,14 +1878,120 @@ def viewer_page(request):
 def data_entry_page(request):
     if not hasattr(request.user, "role") or request.user.role != "data_entry":
         return render(request, "403_fallback.html", {"message": "You are not authorized to visit this page"}, status=403)
-    total_incomplete = BMCAgreement.objects.filter(document_status='INCOMPLETE').count()
-    total_complete = BMCAgreement.objects.filter(document_status='COMPLETE').count()
+
+    total_incomplete = (
+        BMCAgreement.objects.filter(document_status='INCOMPLETE').count() +
+        AMCAgreement.objects.filter(document_status='INCOMPLETE').count() +
+        ConsultantAgreement.objects.filter(document_status='INCOMPLETE').count() +
+        InputServicesAgreement.objects.filter(document_status='INCOMPLETE').count() +
+        CookAgreement.objects.filter(document_status='INCOMPLETE').count() +
+        DistributerAgreement.objects.filter(document_status='INCOMPLETE').count() +
+        MilkSaleAgreement.objects.filter(document_status='INCOMPLETE').count() +
+        MCCAgreement.objects.filter(document_status='INCOMPLETE').count() +
+        MPACSAgreement.objects.filter(document_status='INCOMPLETE').count() +
+        RentalBMCAgreement.objects.filter(document_status='INCOMPLETE').count() +
+        GodownAgreement.objects.filter(document_status='INCOMPLETE').count() +
+        OfficeLeaseAgreement.objects.filter(document_status='INCOMPLETE').count() +
+        GuestHouseAgreement.objects.filter(document_status='INCOMPLETE').count() +
+        RTAAgreement.objects.filter(document_status='INCOMPLETE').count()
+    )
+
+    total_complete = (
+        BMCAgreement.objects.filter(document_status='COMPLETE').count() +
+        AMCAgreement.objects.filter(document_status='COMPLETE').count() +
+        ConsultantAgreement.objects.filter(document_status='COMPLETE').count() +
+        InputServicesAgreement.objects.filter(document_status='COMPLETE').count() +
+        CookAgreement.objects.filter(document_status='COMPLETE').count() +
+        DistributerAgreement.objects.filter(document_status='COMPLETE').count() +
+        MilkSaleAgreement.objects.filter(document_status='COMPLETE').count() +
+        MCCAgreement.objects.filter(document_status='COMPLETE').count() +
+        MPACSAgreement.objects.filter(document_status='COMPLETE').count() +
+        RentalBMCAgreement.objects.filter(document_status='COMPLETE').count() +
+        GodownAgreement.objects.filter(document_status='COMPLETE').count() +
+        OfficeLeaseAgreement.objects.filter(document_status='COMPLETE').count() +
+        GuestHouseAgreement.objects.filter(document_status='COMPLETE').count() +
+        RTAAgreement.objects.filter(document_status='COMPLETE').count()
+    )
+
     return render(request, 'data_entry_page.html', {
         'user': request.user,
         'total_incomplete': total_incomplete,
         'total_complete': total_complete,
     })
 
+
+import openpyxl
+from django.http import HttpResponse
+from .models import (
+    BMCAgreement, AMCAgreement, ConsultantAgreement, InputServicesAgreement,
+    CookAgreement, DistributerAgreement, MilkSaleAgreement, MCCAgreement,
+    MPACSAgreement, RentalBMCAgreement, GodownAgreement, OfficeLeaseAgreement,
+    GuestHouseAgreement, RTAAgreement, MPPSahayakAgreement
+)
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def download_incomplete_excel(request):
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Incomplete Agreements"
+    ws.append(["Agreement Type", "ID", "Contractor/Name", "Location/Zone", "Document Status", "Pending Document"])
+
+    # Helper to add rows for each model
+    def add_rows(qs, agreement_type, fields):
+        for obj in qs:
+            row = [agreement_type]
+            for f in fields:
+                row.append(getattr(obj, f, ''))
+            ws.append(row)
+
+    # Agreements with document_status
+    add_rows(BMCAgreement.objects.filter(document_status='INCOMPLETE'), "BMC", ["id", "contractor", "location", "document_status", "document_pending"])
+    add_rows(AMCAgreement.objects.filter(document_status='INCOMPLETE'), "AMC", ["id", "contractor", "product", "document_status", "document_pending"])
+    add_rows(ConsultantAgreement.objects.filter(document_status='INCOMPLETE'), "Consultant", ["id", "contractor", "category", "document_status", "document_pending"])
+    add_rows(InputServicesAgreement.objects.filter(document_status='INCOMPLETE'), "Input Services", ["id", "contractor", "product", "document_status", "document_pending"])
+    add_rows(CookAgreement.objects.filter(document_status='INCOMPLETE'), "Cook", ["id", "contractor", "location", "document_status", "document_pending"])
+    add_rows(DistributerAgreement.objects.filter(document_status='INCOMPLETE'), "Distributer", ["id", "contractor", "location", "document_status", "document_pending"])
+    add_rows(MilkSaleAgreement.objects.filter(document_status='INCOMPLETE'), "Milk Sale", ["id", "contractor", "location", "document_status", "document_pending"])
+    add_rows(MCCAgreement.objects.filter(document_status='INCOMPLETE'), "MCC", ["id", "contractor", "location", "document_status", "document_pending"])
+    add_rows(MPACSAgreement.objects.filter(document_status='INCOMPLETE'), "MPACS", ["id", "contractor", "location", "document_status", "document_pending"])
+    add_rows(RentalBMCAgreement.objects.filter(document_status='INCOMPLETE'), "Rental BMC", ["id", "contractor", "location", "document_status", "document_pending"])
+    add_rows(GodownAgreement.objects.filter(document_status='INCOMPLETE'), "Godown", ["id", "contractor", "location", "document_status", "document_pending"])
+    add_rows(OfficeLeaseAgreement.objects.filter(document_status='INCOMPLETE'), "Office Lease", ["id", "contractor", "location", "document_status", "document_pending"])
+    add_rows(GuestHouseAgreement.objects.filter(document_status='INCOMPLETE'), "Guest House", ["id", "contractor", "location", "document_status", "document_pending"])
+    add_rows(RTAAgreement.objects.filter(document_status='INCOMPLETE'), "RTA", ["id", "contractor", "location", "document_status", "document_pending"])
+
+    # For MPPSahayakAgreement (no document_status field)
+    # If you want to include all, or filter by some other logic
+    for obj in MPPSahayakAgreement.objects.all():
+        ws.append([
+            "MPP/Sahayak",
+            obj.id,
+            f"{obj.mpp_name} / {obj.sahayak_name}",
+            obj.mcc,
+            "N/A",  # No document_status
+            ""      # No document_pending
+        ])
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="incomplete_agreements.xlsx"'
+    wb.save(response)
+    return response
+
 # Optional: Custom 404 handler for URL mismatch
 def custom_404_view(request, exception=None):
     return render(request, "403_fallback.html", {"message": "Please don't modify the url"}, status=404)
+
+
+class CustomPasswordResetView(PasswordResetView):
+    template_name = 'password_reset_request.html'
+    email_template_name = 'password_reset_email.html'
+    subject_template_name = 'password_reset_subject.txt'
+    success_url = reverse_lazy('password_reset_done')
+
+class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+    template_name = 'password_reset_confirm.html'
+    success_url = reverse_lazy('password_reset_complete')
+    form_class = SetPasswordForm

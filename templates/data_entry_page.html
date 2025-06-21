@@ -3073,9 +3073,12 @@ input[placeholder]::placeholder {
     ">{{total_incomplete}}</span> INCOMPLETE AGREEMENTS
             </div>
             <div style="display: flex; justify-content: center; align-items: flex-end; height: 80px;">
-                <button id="download-incomplete-btn" style="display: inline-block; background: #F2C078; color: #333; border: none; border-radius: 8px; padding: 12px 32px; font-size: 1.1rem; font-weight: 600; cursor: pointer;">
-                    Download Excel Report
-                </button>
+                <!-- Replace the button inside the incomplete agreements card with: -->
+            <button id="download-incomplete-btn"
+                onclick="window.location.href='{% url 'download_incomplete_excel' %}'"
+                style="display: inline-block; background: #F2C078; color: #333; border: none; border-radius: 8px; padding: 12px 32px; font-size: 1.1rem; font-weight: 600; cursor: pointer;">
+                Download Excel Report
+            </button>
             </div>
         </div>
     </div>

@@ -55,8 +55,15 @@ urlpatterns = [
     path('office_lease/stats/', bmc_stats, name='bmc-stats'), 
     path('guest_house/stats/', bmc_stats, name='bmc-stats'), 
     path("logout/", logout_view, name="logout"),
+     path('password-reset/', password_reset_request, name='password_reset_request'),
+    path('password-reset/confirm/<uidb64>/<token>/', 
+     password_reset_confirm, 
+     name='password_reset_confirm'),
+    path('password-reset/complete/',password_reset_complete, 
+         name='password_reset_complete'),
     path("viewer_page/", viewer_page, name="viewer"),
-    path("data_entry/", data_entry_page, name="data-entry")
+    path("data_entry/", data_entry_page, name="data-entry"),
+    path('download-incomplete-excel/', download_incomplete_excel, name='download_incomplete_excel')
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

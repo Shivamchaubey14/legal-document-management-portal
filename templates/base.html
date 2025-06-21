@@ -80,7 +80,7 @@
            LEGAL DOCUMENT MANAGEMENT PORTAL
         </div>
         <div class="header-right">
-            {% if request.resolver_match.url_name != "login" %}
+            {% if user.is_authenticated and not 'auth' in request.resolver_match.namespaces %}
             <a href="{% url 'logout' %}" class="btn btn-danger fw-bold">Logout</a>
             {% endif %}
         </div>
@@ -93,7 +93,7 @@
     </div>
 
     <footer class="text-center fw-light py-3" style="color: #4E71FF;">
-        &copy; SHWETDHARA MILK PRODUCER COMPANY LIMITED
+        &copy; DEVELOPED BY SHIVAM KUMAR CHAUBEY
     </footer>
 
     <!-- jQuery -->
