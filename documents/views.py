@@ -1,44 +1,37 @@
-from datetime import datetime, date
-from django.contrib.auth import authenticate, login as auth_login, logout
-from django.db import transaction
-from .models import *
-from django.http import JsonResponse, HttpResponse
-from django.shortcuts import get_object_or_404
-from .models import BMCAgreement
-from PyPDF2 import PdfReader, PdfWriter
-from django.core.files.base import ContentFile
 import io
+import openpyxl
 import os
-import tempfile
+import pprint
 import shutil
+from .models import *
 from datetime import datetime, date
-from django.db import transaction
-import os
-from .models import BMCAgreement
-from dateutil.relativedelta import relativedelta
+from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate, login as auth_login, logout
+from django.contrib.auth.decorators import login_required
+from django.core.files.base import ContentFile
 from django.db import transaction
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse, HttpResponse
+import tempfile
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
-from .models import BMCAgreement
 from PyPDF2 import PdfReader, PdfWriter
-from django.core.files.base import ContentFile
-import io
-import os
-from django.conf import settings
 from django.views.decorators.clickjacking import xframe_options_exempt
 from dateutil.relativedelta import relativedelta
 from django.contrib.auth.views import PasswordResetView, PasswordResetConfirmView
 from django.urls import reverse_lazy
-from django.shortcuts import render
 from django.contrib import messages
-from django.core.mail import send_mail
-from django.conf import settings
-from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.forms import SetPasswordForm
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from django.contrib.sites.shortcuts import get_current_site
+from django.template.loader import render_to_string
+from django.urls import reverse
+from django.utils.decorators import method_decorator
+from django.utils.encoding import force_str
+from django.utils.http import urlsafe_base64_decode
 
 # A utility function to get the number of months remaining to tell user how many months have left to expire.
 def months_between_today_and_end(end_date):
@@ -317,7 +310,8 @@ def amc_search(request):
         if contractor and product:
             qs = AMCAgreement.objects.filter(
                 contractor__iexact=contractor,
-                product__iexact=product
+                product__iexact=product,
+                document_status='INCOMPLETE'
             )
             print(f"[amc_search] Found {qs.count()} results for contractor '{contractor}' and product '{product}'")
             for amc in qs:
@@ -971,7 +965,6 @@ def input_services_edit_merge(request, pk):
 
 # A function for searching input services agreement by contractor and product name and this is used for editing purposes. 
 
-import pprint
 
 def input_services_search(request):
     contractor = request.GET.get('contractor', '').strip()
@@ -1171,7 +1164,7 @@ def consultant_search(request):
     contractor = request.GET.get('contractor', '').strip()
     print("The contractor is ", contractor)
     print("consultant_search GET params:", {"category": category, "contractor": contractor})
-    qs = ConsultantAgreement.objects.filter(category__icontains=category, contractor__icontains=contractor)
+    qs = ConsultantAgreement.objects.filter(category__icontains=category, contractor__icontains=contractor, document_status='INCOMPLETE')
     print("The query string is", qs)
     results = []
     for obj in qs:
@@ -1404,6 +1397,16 @@ def consultant_search_viewer(request):
     except Exception as e:
         print(f"[consultant_search_viewer] Exception occurred: {e}")
         return JsonResponse({"error": str(e)}, status=500)
+    
+def consultant_stats(request):
+    total = ConsultantAgreement.objects.count()
+    complete = ConsultantAgreement.objects.filter(document_status='COMPLETE').count()
+    incomplete = ConsultantAgreement.objects.filter(document_status='INCOMPLETE').count()
+    return JsonResponse({
+        "total": total, 
+        "complete": complete, 
+        "incomplete": incomplete
+    })
 
 # ----------------ALL CONSULTANT AGREEMENT ENDS HERE---------------------
 
@@ -1511,7 +1514,7 @@ def cook_search(request):
     contractor = request.GET.get('contractor', '').strip()
     print("The contractor is ", contractor)
     print("cook_search GET params:", {"location": location, "contractor": contractor})
-    qs = CookAgreement.objects.filter(location__icontains=location, contractor__icontains=contractor)
+    qs = CookAgreement.objects.filter(location__icontains=location, contractor__icontains=contractor, document_status='INCOMPLETE')
     print("The query string is", qs)
     results = []
     for obj in qs:
@@ -1745,6 +1748,958 @@ def cook_edit_merge(request, pk):
     print("Request method not allowed:", request.method)
     return JsonResponse({"error": "Only POST allowed"}, status=405)
 
+def cook_stats(request):
+    total = CookAgreement.objects.count()
+    complete = CookAgreement.objects.filter(document_status='COMPLETE').count()
+    incomplete = CookAgreement.objects.filter(document_status='INCOMPLETE').count()
+    return JsonResponse({
+        "total": total, 
+        "complete":complete,
+        "incomplete":incomplete
+    })
+
+# ------------ALL COOK AGREEMENT VIEWS ENDS HERE--------------------------
+
+
+def distributer_create(request):
+    """
+    Handles creation of a new Distributer Agreement record with file upload.
+    Processes POST requests with form data and document file.
+    """
+    print("\n" + "="*50)
+    print("STARTING DISTRIBUTER AGREEMENT CREATION PROCESS")
+    print("="*50 + "\n")
+    
+    if request.method == "POST":
+        try:
+            with transaction.atomic():  # Start database transaction
+                # ==============================================
+                # 1. GET FORM DATA FROM REQUEST
+                # ==============================================
+                print("\n[1] EXTRACTING FORM DATA FROM REQUEST")
+                print("-"*40)
+                
+                zone = request.POST.get("zone")
+                location = request.POST.get("location")
+                contractor = request.POST.get("contractor")
+                pan = request.POST.get("pan")
+                type_of_agreement = request.POST.get("type_of_agreement")
+                agreement_date = request.POST.get("agreement_date")
+                start_date = request.POST.get("start_date")
+                end_date = request.POST.get("end_date")
+                tenure_months = request.POST.get("tenure_months")
+                lock_in_period = request.POST.get("lock_in_period")
+                monthly_payout = request.POST.get("monthly_payout")
+                document_status = request.POST.get("document_status")
+                document_pending = request.POST.get("document_pending")
+                document_file = request.FILES.get("document")
+
+                print(f"Zone: {zone}")
+                print(f"Location: {location}")
+                print(f"Contractor: {contractor}")
+                print(f"PAN: {pan}")
+                print(f"Agreement Type: {type_of_agreement}")
+                print(f"Agreement Date: {agreement_date}")
+                print(f"Start Date: {start_date}")
+                print(f"End Date: {end_date}")
+                print(f"Tenure (months): {tenure_months}")
+                print(f"Lock-in Period: {lock_in_period}")
+                print(f"Monthly Payout: {monthly_payout}")
+                print(f"Document Status: {document_status}")
+                print(f"Pending Documents: {document_pending}")
+                print(f"Document File: {'Exists' if document_file else 'None'}")
+
+                # ==============================================
+                # 2. PARSE AND VALIDATE DATES
+                # ==============================================
+                print("\n[2] PARSING AND VALIDATING DATES")
+                print("-"*40)
+                
+                agreement_date_obj = (
+                    datetime.strptime(agreement_date, "%Y-%m-%d").date() 
+                    if agreement_date else None
+                )
+                start_date_obj = (
+                    datetime.strptime(start_date, "%Y-%m-%d").date() 
+                    if start_date else None
+                )
+                end_date_obj = (
+                    datetime.strptime(end_date, "%Y-%m-%d").date() 
+                    if end_date else None
+                )
+
+                print(f"Parsed Agreement Date: {agreement_date_obj}")
+                print(f"Parsed Start Date: {start_date_obj}")
+                print(f"Parsed End Date: {end_date_obj}")
+
+                # ==============================================
+                # 3. DETERMINE AGREEMENT STATUS AND FOLDER STRUCTURE
+                # ==============================================
+                print("\n[3] DETERMINING AGREEMENT STATUS AND FOLDER STRUCTURE")
+                print("-"*40)
+                
+                today = date.today()
+                is_expired = end_date_obj and end_date_obj < today
+                base_folder = "Expired" if is_expired else "Ongoing"
+                agreement_type_folder = "Distributer Agreements"
+                status_folder = document_status.upper() if document_status else "UNKNOWN"
+                
+                # Generate agreement name (contractor name or file name)
+                agreement_name = (
+                    contractor.strip() if contractor 
+                    else (os.path.splitext(document_file.name)[0] 
+                          if document_file else "UnknownAgreement")
+                )
+                
+                # Create date range folder name
+                date_folder = f"{start_date}-{end_date}"
+                
+                # Set document filename
+                file_base_name = f"{agreement_name}.pdf" if document_file else "document.pdf"
+
+                print(f"Today's Date: {today}")
+                print(f"Is Expired: {is_expired}")
+                print(f"Base Folder: {base_folder}")
+                print(f"Agreement Type Folder: {agreement_type_folder}")
+                print(f"Status Folder: {status_folder}")
+                print(f"Agreement Name: {agreement_name}")
+                print(f"Date Folder: {date_folder}")
+                print(f"File Base Name: {file_base_name}")
+
+                # ==============================================
+                # 4. BUILD FILE PATH STRUCTURE
+                # ==============================================
+                print("\n[4] BUILDING FILE PATH STRUCTURE")
+                print("-"*40)
+                
+                upload_folder = os.path.join(
+                    "Agreements",
+                    base_folder,
+                    agreement_type_folder,
+                    status_folder,
+                    agreement_name,
+                    date_folder
+                )
+
+                print(f"Upload Folder (relative): {upload_folder}")
+
+                # Create physical directory if needed
+                full_upload_path = os.path.join(settings.MEDIA_ROOT, upload_folder)
+                print(f"Full Upload Path: {full_upload_path}")
+                
+                os.makedirs(full_upload_path, exist_ok=True)
+                print("Directory created successfully")
+
+                # ==============================================
+                # 5. HANDLE FILE UPLOAD
+                # ==============================================
+                print("\n[5] HANDLING FILE UPLOAD")
+                print("-"*40)
+                
+                if document_file:
+                    file_path = os.path.join(upload_folder, file_base_name)
+                    absolute_file_path = os.path.join(settings.MEDIA_ROOT, file_path)
+                    
+                    print(f"File Path (relative): {file_path}")
+                    print(f"Absolute File Path: {absolute_file_path}")
+                    print(f"Original File Name: {document_file.name}")
+                    print(f"File Size: {document_file.size} bytes")
+                    print(f"Content Type: {document_file.content_type}")
+                    
+                    # Save file chunk by chunk to handle large files
+                    with open(absolute_file_path, 'wb+') as destination:
+                        for chunk in document_file.chunks():
+                            destination.write(chunk)
+                    print("File saved successfully")
+                else:
+                    file_path = None
+                    print("No document file provided")
+
+                # ==============================================
+                # 6. CREATE DATABASE RECORD
+                # ==============================================
+                print("\n[6] CREATING DATABASE RECORD")
+                print("-"*40)
+                
+                distributer_agreement = DistributerAgreement.objects.create(
+                    zone=zone,
+                    location=location,
+                    contractor=contractor,
+                    pan=pan,
+                    type_of_agreement=type_of_agreement,
+                    agreement_date=agreement_date_obj,
+                    start_date=start_date_obj,
+                    end_date=end_date_obj,
+                    tenure_months=tenure_months,
+                    lock_in_period=lock_in_period,
+                    monthly_payout=monthly_payout,
+                    document_status=document_status,
+                    document_pending=document_pending,
+                    document=file_path,  # Save relative path to the file
+                    created_by=request.user if request.user.is_authenticated else None
+                )
+                
+                print("\n" + "="*50)
+                print("DISTRIBUTER AGREEMENT CREATED SUCCESSFULLY")
+                print("="*50)
+                print(f"New Agreement ID: {distributer_agreement.id}")
+                print(f"Contractor: {distributer_agreement.contractor}")
+                print(f"Document Path: {distributer_agreement.document}")
+                print(f"Created At: {distributer_agreement.created_at}")
+                print(f"Created By: {distributer_agreement.created_by}")
+                print("="*50 + "\n")
+
+            return HttpResponse("SUBMIT SUCCESSFULLY")
+            
+        except Exception as e:
+            print("\n" + "!"*50)
+            print("ERROR CREATING DISTRIBUTER AGREEMENT")
+            print("!"*50)
+            print(f"Error Type: {type(e).__name__}")
+            print(f"Error Message: {str(e)}")
+            print("!"*50 + "\n")
+            
+            return HttpResponse(f"Error: {str(e)}", status=500)
+            
+    print("\n" + "!"*50)
+    print("INVALID REQUEST METHOD")
+    print("!"*50)
+    print(f"Received method: {request.method}")
+    print("Expected method: POST")
+    print("!"*50 + "\n")
+    
+    return HttpResponse("Only POST requests are supported", status=405)
+
+def distributer_search(request):
+    location = request.GET.get('location', '').strip()
+    print("The location is ", location)
+    contractor = request.GET.get('contractor', '').strip()
+    print("The contractor is ", contractor)
+    print("distributer_search GET params:", {"location": location, "contractor": contractor})
+    qs = DistributerAgreement.objects.filter(location__icontains=location, contractor__icontains=contractor, document_status='INCOMPLETE')
+    print("The query string is", qs)
+    results = []
+    for obj in qs:
+        if obj.document and hasattr(obj.document, "path"):
+            try:
+                reader = PdfReader(obj.document.path)
+                page_count = len(reader.pages)
+                print(f"DistributerAgreement ID {obj.id} document has {page_count} pages")
+            except Exception as e:
+                print(f"Error reading PDF for DistributerAgreement ID {obj.id}: {e}")
+        results.append({
+            "id": obj.id,
+            "zone": obj.zone,
+            "location": obj.location,
+            "contractor": obj.contractor,
+            "document_status": obj.document_status,
+            "document_pending": obj.document_pending,
+            "document_url": obj.document.url if obj.document else "",
+            "document_name": obj.document.name.split('/')[-1] if obj.document else "",
+        })
+    print("distributer_search results:", results)
+    return JsonResponse({"results": results})
+
+@csrf_exempt
+def distributer_edit_merge(request, pk):
+    """
+    Merge a new PDF into the existing Distributer Agreement PDF.
+    If the agreement is now expired (based on end_date), move the merged PDF to the Expired folder.
+    If the status changes (e.g., INCOMPLETE -> COMPLETE), move the merged PDF to the new status folder and remove the old status folder if empty.
+    The folder structure is maintained as:
+    Agreements/{Ongoing|Expired}/Distributer Agreements/{STATUS}/{Agreement Name}/{STARTDATE}-{ENDDATE}/
+    """
+    if request.method == "POST":
+        print("---- distributer_edit_merge POST ----")
+        print("request.POST:", dict(request.POST))
+        print("request.FILES:", request.FILES)
+        distributer = get_object_or_404(DistributerAgreement, pk=pk)
+        print(f"Fetched DistributerAgreement ID {pk}: {distributer}")
+
+        new_status = request.POST.get("document_status", distributer.document_status)
+        print("New status:", new_status)
+        new_pending_document = request.POST.get("pending_document", distributer.document_pending)
+        print("New pending_document:", new_pending_document)
+        new_pdf_file = request.FILES.get("insert_pdf")
+        print("New PDF file:", new_pdf_file.name if new_pdf_file else "None")
+
+        if not new_pdf_file:
+            print("No PDF uploaded")
+            return JsonResponse({"error": "No PDF uploaded"}, status=400)
+
+        temp_dir = None
+        try:
+            with transaction.atomic():
+                # Verify we have an existing document
+                if not distributer.document:
+                    print("Error: No existing document to merge with")
+                    return JsonResponse({"error": "No existing document to merge with"}, status=400)
+
+                existing_file_path = distributer.document.path
+                existing_filename = os.path.basename(distributer.document.name)
+                print(f"Existing file path: {existing_file_path}")
+                print(f"Existing filename: {existing_filename}")
+
+                # Initialize PDF writer for merged content
+                writer = PdfWriter()
+                print("Initialized PdfWriter for merging.")
+
+                # Load existing PDF pages
+                print("Loading existing PDF...")
+                existing_pdf = PdfReader(existing_file_path)
+                original_page_count = len(existing_pdf.pages)
+                print(f"Existing PDF has {original_page_count} pages")
+                for page in existing_pdf.pages:
+                    writer.add_page(page)
+                print(f"Added {original_page_count} existing pages to writer")
+
+                # Load and add new PDF pages
+                print("Loading new PDF to append...")
+                new_pdf = PdfReader(new_pdf_file)
+                new_page_count = len(new_pdf.pages)
+                print(f"New PDF has {new_page_count} pages")
+                for page in new_pdf.pages:
+                    writer.add_page(page)
+                print(f"Added {new_page_count} new pages to writer")
+
+                # Write merged content to a temp file
+                temp_dir = tempfile.mkdtemp()
+                temp_pdf_path = os.path.join(temp_dir, existing_filename)
+                with open(temp_pdf_path, 'wb') as temp_f:
+                    writer.write(temp_f)
+                print(f"Created merged PDF with {len(writer.pages)} total pages at {temp_pdf_path}")
+
+                # Determine if agreement is now expired
+                today = date.today()
+                end_date_obj = distributer.end_date if isinstance(distributer.end_date, date) else datetime.strptime(str(distributer.end_date), "%Y-%m-%d").date()
+                is_expired = end_date_obj and end_date_obj < today
+                print(f"Agreement expired? {is_expired} (end_date: {distributer.end_date}, today: {today})")
+
+                # Build the correct folder structure
+                base_folder = "Expired" if is_expired else "Ongoing"
+                agreement_type_folder = "Distributer Agreements"
+                status_folder = new_status.upper() if new_status else "UNKNOWN"
+                agreement_name = os.path.splitext(existing_filename)[0]
+                date_folder = f"{distributer.start_date}-{distributer.end_date}"
+                upload_folder = os.path.join(
+                    "Agreements",
+                    base_folder,
+                    agreement_type_folder,
+                    status_folder,
+                    agreement_name,
+                    date_folder
+                )
+                full_upload_path = os.path.join(settings.MEDIA_ROOT, upload_folder)
+                new_file_path = os.path.join(full_upload_path, existing_filename)
+                print(f"Final upload folder: {upload_folder}")
+                print(f"Full upload path: {full_upload_path}")
+                print(f"New file path: {new_file_path}")
+
+                # Only now create the final folder and move the file
+                os.makedirs(full_upload_path, exist_ok=True)
+                shutil.move(temp_pdf_path, new_file_path)
+                print(f"Moved merged PDF to {new_file_path}")
+
+                # Remove old file if it's in a different location
+                if os.path.abspath(existing_file_path) != os.path.abspath(new_file_path):
+                    print(f"Moving file from {existing_file_path} to {new_file_path}")
+                    if os.path.exists(existing_file_path):
+                        os.remove(existing_file_path)
+                    # Clean up old empty folders up to status level
+                    try:
+                        old_date_folder = os.path.dirname(existing_file_path)
+                        old_agreement_folder = os.path.dirname(old_date_folder)
+                        old_status_folder = os.path.dirname(old_agreement_folder)
+                        if os.path.isdir(old_date_folder) and not os.listdir(old_date_folder):
+                            os.rmdir(old_date_folder)
+                        if os.path.isdir(old_agreement_folder) and not os.listdir(old_agreement_folder):
+                            os.rmdir(old_agreement_folder)
+                        if os.path.isdir(old_status_folder) and not os.listdir(old_status_folder):
+                            os.rmdir(old_status_folder)
+                        print("Cleaned up old empty folders if needed.")
+                    except Exception as cleanup_err:
+                        print("Cleanup error:", cleanup_err)
+
+                # Update the document field to the new relative path if location changed
+                rel_file_path = os.path.relpath(new_file_path, settings.MEDIA_ROOT)
+                if distributer.document.name != rel_file_path.replace("\\", "/"):
+                    distributer.document.name = rel_file_path.replace("\\", "/")
+                    print(f"Updated distributer.document.name to {distributer.document.name}")
+
+                # Update the model to reflect the changes
+                distributer.document_status = new_status
+                distributer.document_pending = new_pending_document
+                distributer.save()
+                print("PDF successfully merged and saved with correct folder structure")
+                print(f"Final file location: {new_file_path}")
+
+                return JsonResponse({"success": True, "new_page_count": len(writer.pages)})
+
+        except Exception as e:
+            print("Exception during PDF merge:", str(e))
+            if temp_dir and os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+            if 'full_upload_path' in locals() and os.path.exists(full_upload_path):
+                try:
+                    shutil.rmtree(full_upload_path)
+                except Exception:
+                    pass
+            return JsonResponse({"error": str(e)}, status=500)
+        finally:
+            if temp_dir and os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+
+    print("Request method not allowed:", request.method)
+    return JsonResponse({"error": "Only POST allowed"}, status=405)
+
+
+
+@xframe_options_exempt
+def distributer_search_viewer(request):
+    try:
+        location = request.GET.get('location', '').strip()
+        contractor = request.GET.get('contractor', '').strip()
+        status = request.GET.get('status', '').strip().upper()
+
+        print("[distributer_search_viewer] GET params:")
+        print("  location:", location)
+        print("  contractor:", contractor)
+        print("  status:", status)
+
+        qs = DistributerAgreement.objects.all()
+        if location:
+            qs = qs.filter(location__icontains=location)
+        if contractor:
+            qs = qs.filter(contractor__icontains=contractor)
+        if status:
+            qs = qs.filter(document_status__iexact=status)
+
+        def format_dmy(date_obj):
+            if not date_obj:
+                return ""
+            return date_obj.strftime("%d/%m/%y")
+
+        results = []
+        for obj in qs:
+            start = obj.start_date
+            end = obj.end_date
+            expire_months = months_between_today_and_end(end) if end else "-"
+            if obj.created_by:
+                creator = f"{obj.created_by.first_name or ''} {obj.created_by.last_name or ''}".strip()
+                if not creator:
+                    creator = obj.created_by.email
+            else:
+                creator = ""
+            results.append({
+                "id": obj.id,
+                "agreement_date": format_dmy(getattr(obj, "agreement_date", None)),
+                "zone": getattr(obj, "zone", ""),
+                "location": obj.location,
+                "contractor": obj.contractor,
+                "document_status": obj.document_status,
+                "pending_document": getattr(obj, "document_pending", ""),
+                "start_date": format_dmy(start) if start else "",
+                "end_date": format_dmy(end) if end else "",
+                "expire_months": expire_months,
+                "created_by": creator,
+                "document_url": obj.document.url if obj.document else "",
+            })
+        print("[distributer_search_viewer] Results:")
+        import pprint
+        pprint.pprint(results)
+        return JsonResponse({"results": results})
+    except Exception as e:
+        print(f"[distributer_search_viewer] Exception occurred: {e}")
+        return JsonResponse({"error": str(e)}, status=500)
+
+def distributer_stats(request):
+    total = DistributerAgreement.objects.count()
+    complete = DistributerAgreement.objects.filter(document_status='COMPLETE').count()
+    incomplete = DistributerAgreement.objects.filter(document_status='INCOMPLETE').count()
+    return JsonResponse({
+        "total":total,
+        "complete":complete,
+        "incomplete":incomplete
+    })
+
+# ---------------------ALL DISTRIBUTER AGREEMENTS VIEW ENDS HERE----------
+
+def milk_sale_create(request):
+    """
+    Handles creation of a new Milk Sale Agreement record with file upload.
+    Processes POST requests with form data and document file.
+    """
+    print("\n" + "="*50)
+    print("STARTING MILK SALE AGREEMENT CREATION PROCESS")
+    print("="*50 + "\n")
+    
+    if request.method == "POST":
+        try:
+            with transaction.atomic():  # Start database transaction
+                # ==============================================
+                # 1. GET FORM DATA FROM REQUEST
+                # ==============================================
+                print("\n[1] EXTRACTING FORM DATA FROM REQUEST")
+                print("-"*40)
+                
+                zone = request.POST.get("zone")
+                location = request.POST.get("location")
+                contractor = request.POST.get("contractor")
+                pan = request.POST.get("pan")
+                type_of_agreement = request.POST.get("type_of_agreement")
+                agreement_date = request.POST.get("agreement_date")
+                start_date = request.POST.get("start_date")
+                end_date = request.POST.get("end_date")
+                tenure_months = request.POST.get("tenure_months")
+                lock_in_period = request.POST.get("lock_in_period")
+                monthly_payout = request.POST.get("monthly_payout")
+                document_status = request.POST.get("document_status")
+                document_pending = request.POST.get("document_pending")
+                document_file = request.FILES.get("document")
+
+                print(f"Zone: {zone}")
+                print(f"Location: {location}")
+                print(f"Contractor: {contractor}")
+                print(f"PAN: {pan}")
+                print(f"Agreement Type: {type_of_agreement}")
+                print(f"Agreement Date: {agreement_date}")
+                print(f"Start Date: {start_date}")
+                print(f"End Date: {end_date}")
+                print(f"Tenure (months): {tenure_months}")
+                print(f"Lock-in Period: {lock_in_period}")
+                print(f"Monthly Payout: {monthly_payout}")
+                print(f"Document Status: {document_status}")
+                print(f"Pending Documents: {document_pending}")
+                print(f"Document File: {'Exists' if document_file else 'None'}")
+
+                # ==============================================
+                # 2. PARSE AND VALIDATE DATES
+                # ==============================================
+                print("\n[2] PARSING AND VALIDATING DATES")
+                print("-"*40)
+                
+                agreement_date_obj = (
+                    datetime.strptime(agreement_date, "%Y-%m-%d").date() 
+                    if agreement_date else None
+                )
+                start_date_obj = (
+                    datetime.strptime(start_date, "%Y-%m-%d").date() 
+                    if start_date else None
+                )
+                end_date_obj = (
+                    datetime.strptime(end_date, "%Y-%m-%d").date() 
+                    if end_date else None
+                )
+
+                print(f"Parsed Agreement Date: {agreement_date_obj}")
+                print(f"Parsed Start Date: {start_date_obj}")
+                print(f"Parsed End Date: {end_date_obj}")
+
+                # ==============================================
+                # 3. DETERMINE AGREEMENT STATUS AND FOLDER STRUCTURE
+                # ==============================================
+                print("\n[3] DETERMINING AGREEMENT STATUS AND FOLDER STRUCTURE")
+                print("-"*40)
+                
+                today = date.today()
+                is_expired = end_date_obj and end_date_obj < today
+                base_folder = "Expired" if is_expired else "Ongoing"
+                agreement_type_folder = "Milk Sale Agreements"
+                status_folder = document_status.upper() if document_status else "UNKNOWN"
+                
+                # Generate agreement name (contractor name or file name)
+                agreement_name = (
+                    contractor.strip() if contractor 
+                    else (os.path.splitext(document_file.name)[0] 
+                          if document_file else "UnknownAgreement")
+                )
+                
+                # Create date range folder name
+                date_folder = f"{start_date}-{end_date}"
+                
+                # Set document filename
+                file_base_name = f"{agreement_name}.pdf" if document_file else "document.pdf"
+
+                print(f"Today's Date: {today}")
+                print(f"Is Expired: {is_expired}")
+                print(f"Base Folder: {base_folder}")
+                print(f"Agreement Type Folder: {agreement_type_folder}")
+                print(f"Status Folder: {status_folder}")
+                print(f"Agreement Name: {agreement_name}")
+                print(f"Date Folder: {date_folder}")
+                print(f"File Base Name: {file_base_name}")
+
+                # ==============================================
+                # 4. BUILD FILE PATH STRUCTURE
+                # ==============================================
+                print("\n[4] BUILDING FILE PATH STRUCTURE")
+                print("-"*40)
+                
+                upload_folder = os.path.join(
+                    "Agreements",
+                    base_folder,
+                    agreement_type_folder,
+                    status_folder,
+                    agreement_name,
+                    date_folder
+                )
+
+                print(f"Upload Folder (relative): {upload_folder}")
+
+                # Create physical directory if needed
+                full_upload_path = os.path.join(settings.MEDIA_ROOT, upload_folder)
+                print(f"Full Upload Path: {full_upload_path}")
+                
+                os.makedirs(full_upload_path, exist_ok=True)
+                print("Directory created successfully")
+
+                # ==============================================
+                # 5. HANDLE FILE UPLOAD
+                # ==============================================
+                print("\n[5] HANDLING FILE UPLOAD")
+                print("-"*40)
+                
+                if document_file:
+                    file_path = os.path.join(upload_folder, file_base_name)
+                    absolute_file_path = os.path.join(settings.MEDIA_ROOT, file_path)
+                    
+                    print(f"File Path (relative): {file_path}")
+                    print(f"Absolute File Path: {absolute_file_path}")
+                    print(f"Original File Name: {document_file.name}")
+                    print(f"File Size: {document_file.size} bytes")
+                    print(f"Content Type: {document_file.content_type}")
+                    
+                    # Save file chunk by chunk to handle large files
+                    with open(absolute_file_path, 'wb+') as destination:
+                        for chunk in document_file.chunks():
+                            destination.write(chunk)
+                    print("File saved successfully")
+                else:
+                    file_path = None
+                    print("No document file provided")
+
+                # ==============================================
+                # 6. CREATE DATABASE RECORD
+                # ==============================================
+                print("\n[6] CREATING DATABASE RECORD")
+                print("-"*40)
+                
+                milk_sale_agreement = MilkSaleAgreement.objects.create(
+                    zone=zone,
+                    location=location,
+                    contractor=contractor,
+                    pan=pan,
+                    type_of_agreement=type_of_agreement,
+                    agreement_date=agreement_date_obj,
+                    start_date=start_date_obj,
+                    end_date=end_date_obj,
+                    tenure_months=tenure_months,
+                    lock_in_period=lock_in_period,
+                    monthly_payout=monthly_payout,
+                    document_status=document_status,
+                    document_pending=document_pending,
+                    document=file_path,  # Save relative path to the file
+                    created_by=request.user if request.user.is_authenticated else None
+                )
+                
+                print("\n" + "="*50)
+                print("MILK SALE AGREEMENT CREATED SUCCESSFULLY")
+                print("="*50)
+                print(f"New Agreement ID: {milk_sale_agreement.id}")
+                print(f"Contractor: {milk_sale_agreement.contractor}")
+                print(f"Document Path: {milk_sale_agreement.document}")
+                print(f"Created At: {milk_sale_agreement.created_at}")
+                print(f"Created By: {milk_sale_agreement.created_by}")
+                print("="*50 + "\n")
+
+            return HttpResponse("SUBMIT SUCCESSFULLY")
+            
+        except Exception as e:
+            print("\n" + "!"*50)
+            print("ERROR CREATING MILK SALE AGREEMENT")
+            print("!"*50)
+            print(f"Error Type: {type(e).__name__}")
+            print(f"Error Message: {str(e)}")
+            print("!"*50 + "\n")
+            
+            return HttpResponse(f"Error: {str(e)}", status=500)
+            
+    print("\n" + "!"*50)
+    print("INVALID REQUEST METHOD")
+    print("!"*50)
+    print(f"Received method: {request.method}")
+    print("Expected method: POST")
+    print("!"*50 + "\n")
+    
+    return HttpResponse("Only POST requests are supported", status=405)
+
+def milk_sale_search(request):
+    location = request.GET.get('location', '').strip()
+    print("The location is ", location)
+    contractor = request.GET.get('contractor', '').strip()
+    print("The contractor is ", contractor)
+    print("milk_sale_search GET params:", {"location": location, "contractor": contractor})
+    qs = MilkSaleAgreement.objects.filter(location__icontains=location, contractor__icontains=contractor, document_status='INCOMPLETE')
+    print("The query string is", qs)
+    results = []
+    for obj in qs:
+        if obj.document and hasattr(obj.document, "path"):
+            try:
+                reader = PdfReader(obj.document.path)
+                page_count = len(reader.pages)
+                print(f"MilkSaleAgreement ID {obj.id} document has {page_count} pages")
+            except Exception as e:
+                print(f"Error reading PDF for MilkSaleAgreement ID {obj.id}: {e}")
+        results.append({
+            "id": obj.id,
+            "zone": obj.zone,
+            "location": obj.location,
+            "contractor": obj.contractor,
+            "document_status": obj.document_status,
+            "document_pending": obj.document_pending,
+            "document_url": obj.document.url if obj.document else "",
+            "document_name": obj.document.name.split('/')[-1] if obj.document else "",
+        })
+    print("milk_sale_search results:", results)
+    return JsonResponse({"results": results})
+
+@csrf_exempt
+def milk_sale_edit_merge(request, pk):
+    """
+    Merge a new PDF into the existing Milk Sale Agreement PDF.
+    If the agreement is now expired (based on end_date), move the merged PDF to the Expired folder.
+    If the status changes (e.g., INCOMPLETE -> COMPLETE), move the merged PDF to the new status folder and remove the old status folder if empty.
+    The folder structure is maintained as:
+    Agreements/{Ongoing|Expired}/Milk Sale Agreements/{STATUS}/{Agreement Name}/{STARTDATE}-{ENDDATE}/
+    """
+    if request.method == "POST":
+        print("---- milk_sale_edit_merge POST ----")
+        print("request.POST:", dict(request.POST))
+        print("request.FILES:", request.FILES)
+        milk_sale = get_object_or_404(MilkSaleAgreement, pk=pk)
+        print(f"Fetched MilkSaleAgreement ID {pk}: {milk_sale}")
+
+        new_status = request.POST.get("document_status", milk_sale.document_status)
+        print("New status:", new_status)
+        new_pending_document = request.POST.get("pending_document", milk_sale.document_pending)
+        print("New pending_document:", new_pending_document)
+        new_pdf_file = request.FILES.get("insert_pdf")
+        print("New PDF file:", new_pdf_file.name if new_pdf_file else "None")
+
+        if not new_pdf_file:
+            print("No PDF uploaded")
+            return JsonResponse({"error": "No PDF uploaded"}, status=400)
+
+        temp_dir = None
+        try:
+            with transaction.atomic():
+                # Verify we have an existing document
+                if not milk_sale.document:
+                    print("Error: No existing document to merge with")
+                    return JsonResponse({"error": "No existing document to merge with"}, status=400)
+
+                existing_file_path = milk_sale.document.path
+                existing_filename = os.path.basename(milk_sale.document.name)
+                print(f"Existing file path: {existing_file_path}")
+                print(f"Existing filename: {existing_filename}")
+
+                # Initialize PDF writer for merged content
+                writer = PdfWriter()
+                print("Initialized PdfWriter for merging.")
+
+                # Load existing PDF pages
+                print("Loading existing PDF...")
+                existing_pdf = PdfReader(existing_file_path)
+                original_page_count = len(existing_pdf.pages)
+                print(f"Existing PDF has {original_page_count} pages")
+                for page in existing_pdf.pages:
+                    writer.add_page(page)
+                print(f"Added {original_page_count} existing pages to writer")
+
+                # Load and add new PDF pages
+                print("Loading new PDF to append...")
+                new_pdf = PdfReader(new_pdf_file)
+                new_page_count = len(new_pdf.pages)
+                print(f"New PDF has {new_page_count} pages")
+                for page in new_pdf.pages:
+                    writer.add_page(page)
+                print(f"Added {new_page_count} new pages to writer")
+
+                # Write merged content to a temp file
+                temp_dir = tempfile.mkdtemp()
+                temp_pdf_path = os.path.join(temp_dir, existing_filename)
+                with open(temp_pdf_path, 'wb') as temp_f:
+                    writer.write(temp_f)
+                print(f"Created merged PDF with {len(writer.pages)} total pages at {temp_pdf_path}")
+
+                # Determine if agreement is now expired
+                today = date.today()
+                end_date_obj = milk_sale.end_date if isinstance(milk_sale.end_date, date) else datetime.strptime(str(milk_sale.end_date), "%Y-%m-%d").date()
+                is_expired = end_date_obj and end_date_obj < today
+                print(f"Agreement expired? {is_expired} (end_date: {milk_sale.end_date}, today: {today})")
+
+                # Build the correct folder structure
+                base_folder = "Expired" if is_expired else "Ongoing"
+                agreement_type_folder = "Milk Sale Agreements"
+                status_folder = new_status.upper() if new_status else "UNKNOWN"
+                agreement_name = os.path.splitext(existing_filename)[0]
+                date_folder = f"{milk_sale.start_date}-{milk_sale.end_date}"
+                upload_folder = os.path.join(
+                    "Agreements",
+                    base_folder,
+                    agreement_type_folder,
+                    status_folder,
+                    agreement_name,
+                    date_folder
+                )
+                full_upload_path = os.path.join(settings.MEDIA_ROOT, upload_folder)
+                new_file_path = os.path.join(full_upload_path, existing_filename)
+                print(f"Final upload folder: {upload_folder}")
+                print(f"Full upload path: {full_upload_path}")
+                print(f"New file path: {new_file_path}")
+
+                # Only now create the final folder and move the file
+                os.makedirs(full_upload_path, exist_ok=True)
+                shutil.move(temp_pdf_path, new_file_path)
+                print(f"Moved merged PDF to {new_file_path}")
+
+                # Remove old file if it's in a different location
+                if os.path.abspath(existing_file_path) != os.path.abspath(new_file_path):
+                    print(f"Moving file from {existing_file_path} to {new_file_path}")
+                    if os.path.exists(existing_file_path):
+                        os.remove(existing_file_path)
+                    # Clean up old empty folders up to status level
+                    try:
+                        old_date_folder = os.path.dirname(existing_file_path)
+                        old_agreement_folder = os.path.dirname(old_date_folder)
+                        old_status_folder = os.path.dirname(old_agreement_folder)
+                        if os.path.isdir(old_date_folder) and not os.listdir(old_date_folder):
+                            os.rmdir(old_date_folder)
+                        if os.path.isdir(old_agreement_folder) and not os.listdir(old_agreement_folder):
+                            os.rmdir(old_agreement_folder)
+                        if os.path.isdir(old_status_folder) and not os.listdir(old_status_folder):
+                            os.rmdir(old_status_folder)
+                        print("Cleaned up old empty folders if needed.")
+                    except Exception as cleanup_err:
+                        print("Cleanup error:", cleanup_err)
+
+                # Update the document field to the new relative path if location changed
+                rel_file_path = os.path.relpath(new_file_path, settings.MEDIA_ROOT)
+                if milk_sale.document.name != rel_file_path.replace("\\", "/"):
+                    milk_sale.document.name = rel_file_path.replace("\\", "/")
+                    print(f"Updated milk_sale.document.name to {milk_sale.document.name}")
+
+                # Update the model to reflect the changes
+                milk_sale.document_status = new_status
+                milk_sale.document_pending = new_pending_document
+                milk_sale.save()
+                print("PDF successfully merged and saved with correct folder structure")
+                print(f"Final file location: {new_file_path}")
+
+                return JsonResponse({"success": True, "new_page_count": len(writer.pages)})
+
+        except Exception as e:
+            print("Exception during PDF merge:", str(e))
+            if temp_dir and os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+            if 'full_upload_path' in locals() and os.path.exists(full_upload_path):
+                try:
+                    shutil.rmtree(full_upload_path)
+                except Exception:
+                    pass
+            return JsonResponse({"error": str(e)}, status=500)
+        finally:
+            if temp_dir and os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+
+    print("Request method not allowed:", request.method)
+    return JsonResponse({"error": "Only POST allowed"}, status=405)
+
+@xframe_options_exempt
+def milk_sale_search_viewer(request):
+    """
+    Viewer search for Milk Sale Agreements.
+    Allows filtering by location, contractor, and status.
+    Returns formatted agreement data for display.
+    """
+    try:
+        location = request.GET.get('location', '').strip()
+        contractor = request.GET.get('contractor', '').strip()
+        status = request.GET.get('status', '').strip().upper()
+
+        print("[milk_sale_search_viewer] GET params:")
+        print("  location:", location)
+        print("  contractor:", contractor)
+        print("  status:", status)
+
+        # Start with all MilkSaleAgreement records
+        qs = MilkSaleAgreement.objects.all()
+        # Filter by location if provided
+        if location:
+            qs = qs.filter(location__icontains=location)
+        # Filter by contractor if provided
+        if contractor:
+            qs = qs.filter(contractor__icontains=contractor)
+        # Filter by status if provided
+        if status:
+            qs = qs.filter(document_status__iexact=status)
+
+        # Helper to format date as dd/mm/yy
+        def format_dmy(date_obj):
+            if not date_obj:
+                return ""
+            return date_obj.strftime("%d/%m/%y")
+
+        results = []
+        for obj in qs:
+            start = obj.start_date
+            end = obj.end_date
+            expire_months = months_between_today_and_end(end) if end else "-"
+            # Get creator's name or email
+            if obj.created_by:
+                creator = f"{obj.created_by.first_name or ''} {obj.created_by.last_name or ''}".strip()
+                if not creator:
+                    creator = obj.created_by.email
+            else:
+                creator = ""
+            results.append({
+                "id": obj.id,
+                "agreement_date": format_dmy(getattr(obj, "agreement_date", None)),
+                "zone": getattr(obj, "zone", ""),
+                "location": obj.location,
+                "contractor": obj.contractor,
+                "document_status": obj.document_status,
+                "pending_document": getattr(obj, "document_pending", ""),
+                "start_date": format_dmy(start) if start else "",
+                "end_date": format_dmy(end) if end else "",
+                "expire_months": expire_months,
+                "created_by": creator,
+                "document_url": obj.document.url if obj.document else "",
+            })
+        print("[milk_sale_search_viewer] Results:")
+        import pprint
+        pprint.pprint(results)
+        return JsonResponse({"results": results})
+    except Exception as e:
+        print(f"[milk_sale_search_viewer] Exception occurred: {e}")
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+
+def milk_sale_stats(request):
+    total = MilkSaleAgreement.objects.count()
+    complete = MilkSaleAgreement.objects.filter(document_status='COMPLETE').count()
+    incomplete = MilkSaleAgreement.objects.filter(document_status='INCOMPLETE').count()
+    return JsonResponse({
+        "total":total,
+        "complete":complete,
+        "incomplete":incomplete
+    })
+
+# ------------ALL MILK SALE VIWES ENDS HERE---------------------
+
+
+
 def login(request):
     if request.method == "POST":
         email = request.POST.get("email")
@@ -1775,19 +2730,12 @@ def logout_view(request):
     print(logout(request))
     return redirect('login')
 
-from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_encode
-from django.utils.encoding import force_bytes
-from django.core.mail import send_mail
-from django.shortcuts import render, redirect
-from django.contrib.sites.shortcuts import get_current_site
-from django.template.loader import render_to_string
-from django.urls import reverse
-from .models import CustomUser
 
 def password_reset_request(request):
     if request.method == 'POST':
         email = request.POST.get('email')
+        response_data = {'success': False, 'message': ''}
+        
         try:
             user = CustomUser.objects.get(email=email)
             
@@ -1820,19 +2768,26 @@ def password_reset_request(request):
                 fail_silently=False,
             )
             
-            return render(request, 'password_reset_request.html', {'show_success': True})
+            response_data['success'] = True
+            response_data['message'] = 'Password reset link has been sent successfully to your email!'
             
         except CustomUser.DoesNotExist:
-            # Email doesn't exist, but we don't reveal this to prevent email enumeration
-            return render(request, 'password_reset_request.html', {'show_success': True})
+            # Email doesn't exist, but we return success to prevent email enumeration
+            response_data['success'] = True
+            response_data['message'] = 'If this email exists in our system, you will receive a password reset link.'
+        
+        except Exception as e:
+            # Log the actual error for debugging
+            print(f"Error sending password reset email: {str(e)}")
+            response_data['message'] = 'An error occurred while sending the reset link. Please try again later.'
+        
+        return JsonResponse(response_data)
     
+    # GET request - show the form
     return render(request, 'password_reset_request.html')
 
 # views.py
-from django.contrib.auth import get_user_model
-from django.utils.encoding import force_str
-from django.utils.http import urlsafe_base64_decode
-from django.contrib.auth.forms import SetPasswordForm
+
 def password_reset_confirm(request, uidb64, token):
     User = get_user_model()
     try:
@@ -1864,9 +2819,6 @@ def password_reset_view(request):
 
 def password_reset_complete(request):
     return render(request, 'password_reset_complete.html')
-
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
 
 @login_required
 def viewer_page(request):
@@ -1920,15 +2872,7 @@ def data_entry_page(request):
     })
 
 
-import openpyxl
-from django.http import HttpResponse
-from .models import (
-    BMCAgreement, AMCAgreement, ConsultantAgreement, InputServicesAgreement,
-    CookAgreement, DistributerAgreement, MilkSaleAgreement, MCCAgreement,
-    MPACSAgreement, RentalBMCAgreement, GodownAgreement, OfficeLeaseAgreement,
-    GuestHouseAgreement, RTAAgreement, MPPSahayakAgreement
-)
-from django.contrib.auth.decorators import login_required
+
 
 @login_required
 def download_incomplete_excel(request):

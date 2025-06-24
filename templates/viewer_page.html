@@ -3,6 +3,234 @@
 {% block title %}Viewer{% endblock %}
 {% block extra_head %}
 <style>
+    /* MILK SALE AGREEMENT STYLES (CONSISTENT WITH DISTRIBUTER) */
+.milk-sale-result-outer-card {
+    background: #fff;
+    border-radius: 22px;
+    box-shadow: 0 2px 16px rgba(7,91,94,0.13);
+    margin: 22px 0 0 0;
+    padding: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    transition: box-shadow 0.2s;
+}
+.milk-sale-result-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 22px 32px 12px 32px;
+    border-radius: 22px 22px 0 0;
+    background: #fff;
+    font-size: 1.13rem;
+    font-weight: 100;
+    color: #000;
+}
+.milk-sale-result-row > div {
+    flex: 1;
+    text-align: center;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+.milk-sale-result-value {
+    font-size: 1.1rem;
+    color: #333;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+}
+.milk-sale-result-inner-card {
+    background: #C1DBB3;
+    border-radius: 18px;
+    margin: 22px 22px 22px 22px;
+    padding: 18px 24px 18px 24px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(7,91,94,0.10);
+    font-size: 1.08rem;
+    font-weight: 500;
+    color: #075B5E;
+}
+.milk-sale-result-inner-card > div {
+    flex: 1;
+    text-align: center;
+}
+.milk-sale-result-expire {
+    background: #fff;
+    color: #d9534f;
+    border-radius: 12px;
+    padding: 6px 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-left: 10px;
+    display: inline-block;
+}
+.milk-sale-missing-doc {
+    background: #fff;
+    color: #d9534f;
+    border-radius: 12px;
+    padding: 6px 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-left: 10px;
+    display: inline-block;
+}
+.milk-sale-no-result {
+    color: #fff;
+    text-align: center;
+    margin-top: 18px;
+    font-size: 1.1rem;
+}
+.milk-sale-search-icon-btn {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%) rotate(-20deg);
+    color: #2C2C2C;
+    font-size: 1.2rem;
+    background: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 2;
+}
+.form-card.milk-sale-active {
+    background: #075B5E !important;
+    color: #fff !important;
+    margin: 10px 20px 10px 20px !important;
+    border-radius: 18px;
+    min-height: 100%;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    padding: 32px 24px;
+    display: flex;
+    font-size: 1.25rem;
+    font-weight: 600;
+    flex-direction: column;
+}
+    /* Add to your existing CSS */
+.distributer-search-icon-btn {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%) rotate(-20deg);
+    color: #2C2C2C;
+    font-size: 1.2rem;
+    background: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 2;
+}
+
+.form-card.distributer-active {
+    background: #075B5E !important;
+    color: #fff !important;
+    margin: 10px 20px 10px 20px !important;
+    border-radius: 18px;
+    min-height: 100%;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    padding: 32px 24px;
+    display: flex;
+    font-size: 1.25rem;
+    font-weight: 600;
+    flex-direction: column;
+}
+
+.distributer-result-outer-card {
+    background: #fff;
+    border-radius: 22px;
+    box-shadow: 0 2px 16px rgba(7,91,94,0.13);
+    margin: 22px 0 0 0;
+    padding: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    transition: box-shadow 0.2s;
+}
+
+.distributer-result-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 22px 32px 12px 32px;
+    border-radius: 22px 22px 0 0;
+    background: #fff;
+    font-size: 1.13rem;
+    font-weight: 100;
+    color: #000;
+}
+
+.distributer-result-row > div {
+    flex: 1;
+    text-align: center;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.distributer-result-value {
+    font-size: 1.1rem;
+    color: #333;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+}
+
+.distributer-result-inner-card {
+    background: #C1DBB3;
+    border-radius: 18px;
+    margin: 22px 22px 22px 22px;
+    padding: 18px 24px 18px 24px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(7,91,94,0.10);
+    font-size: 1.08rem;
+    font-weight: 500;
+    color: #075B5E;
+}
+
+.distributer-result-inner-card > div {
+    flex: 1;
+    text-align: center;
+}
+
+.distributer-result-expire {
+    background: #fff;
+    color: #d9534f;
+    border-radius: 12px;
+    padding: 6px 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-left: 10px;
+    display: inline-block;
+}
+
+.distributer-missing-doc {
+    background: #fff;
+    color: #d9534f;
+    border-radius: 12px;
+    padding: 6px 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-left: 10px;
+    display: inline-block;
+}
+
+.distributer-no-result {
+    color: #fff;
+    text-align: center;
+    margin-top: 18px;
+    font-size: 1.1rem;
+}
     /* COOK AGREEMENT STYLES (CONSISTENT WITH CONSULTANT) */
     .cook-result-outer-card {
         background: #fff;
@@ -423,7 +651,140 @@
         padding: 8px;
         font-weight: 600;
     }
-</style>
+    /* COMMON RESULT CARD STYLES FOR ALL AGREEMENT TYPES */
+.result-outer-card,
+.cook-result-outer-card,
+.amc-result-outer-card,
+.bmc-result-outer-card,
+.input-service-result-outer-card,
+.consultant-result-outer-card {
+    background: #fff;
+    border-radius: 22px;
+    box-shadow: 0 2px 16px rgba(7,91,94,0.13);
+    margin: 22px 0 0 0;
+    padding: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    transition: box-shadow 0.2s;
+}
+
+.result-row,
+.cook-result-row,
+.amc-result-row,
+.bmc-result-row,
+.input-service-result-row,
+.consultant-result-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 22px 32px 12px 32px;
+    border-radius: 22px 22px 0 0;
+    background: #fff;
+    font-size: 1.13rem;
+    font-weight: 100;
+    color: #000;
+}
+
+.result-row > div,
+.cook-result-row > div,
+.amc-result-row > div,
+.bmc-result-row > div,
+.input-service-result-row > div,
+.consultant-result-row > div {
+    flex: 1;
+    text-align: center;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.result-value,
+.cook-result-value,
+.amc-result-value,
+.bmc-result-value,
+.input-service-result-value,
+.consultant-result-value {
+    font-size: 1.1rem;
+    color: #333;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+}
+
+.result-inner-card,
+.cook-result-inner-card,
+.amc-result-inner-card,
+.bmc-result-inner-card,
+.input-service-result-inner-card,
+.consultant-result-inner-card {
+    background: #C1DBB3;
+    border-radius: 18px;
+    margin: 22px 22px 22px 22px;
+    padding: 18px 24px 18px 24px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(7,91,94,0.10);
+    font-size: 1.08rem;
+    font-weight: 500;
+    color: #075B5E;
+}
+
+.result-inner-card > div,
+.cook-result-inner-card > div,
+.amc-result-inner-card > div,
+.bmc-result-inner-card > div,
+.input-service-result-inner-card > div,
+.consultant-result-inner-card > div {
+    flex: 1;
+    text-align: center;
+}
+
+.result-expire,
+.cook-result-expire,
+.amc-result-expire,
+.bmc-result-expire,
+.input-service-result-expire,
+.consultant-result-expire {
+    background: #fff;
+    color: #d9534f;
+    border-radius: 12px;
+    padding: 6px 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-left: 10px;
+    display: inline-block;
+}
+
+.missing-doc,
+.cook-missing-doc,
+.amc-missing-doc,
+.bmc-missing-doc,
+.input-service-missing-doc,
+.consultant-missing-doc {
+    background: #fff;
+    color: #d9534f;
+    border-radius: 12px;
+    padding: 6px 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-left: 10px;
+    display: inline-block;
+}
+
+.no-result,
+.cook-no-result,
+.amc-no-result,
+.bmc-no-result,
+.input-service-no-result,
+.consultant-no-result {
+    color: #fff;
+    text-align: center;
+    margin-top: 18px;
+    font-size: 1.1rem;
+}
 </style>
 {% endblock %}
 {% block content %}
@@ -481,10 +842,10 @@
       <div class="aside-item" id="input-service-agreement">INPUT SERVICES AGREEMENT</div>
       <div class="aside-item" id="consultant-agreement">CONSULTANT AGREEMENT</div>
       <div class="aside-item" id="cook-agreement">COOK AGREEMENT</div>
-      <div class="aside-item">DISTRIBUTER AGREEMENT</div>
+      <div class="aside-item" id="distributer-agreement">DISTRIBUTER AGREEMENT</div>
       <div class="aside-item">INWARD TRANSPORT AGREEMENT</div>
       <div class="aside-item">OUTWARD TRANSPORT AGREEMENT</div>
-      <div class="aside-item">MILK SALE AGREEMENT</div>
+      <div class="aside-item" id="milk-sale-agreement">MILK SALE AGREEMENT</div>
       <div class="aside-item">MCC AGREEMENT</div>
       <div class="aside-item">MPACS AGREEMENT</div>
       <div class="aside-item">MPP/SAHAYAK AGREEMENT</div>
@@ -592,6 +953,37 @@
                 <div id="cook-search-result-container"></div>
             </div>
         </div>
+        <!-- DISTRIBUTER AGREEMENT SEARCH CONTAINER -->
+        <div id="distributer-search-container" style="display: none; width: 100%;">
+            <div style="padding: 15px 20px 0 20px; margin-bottom: 10px; margin-top: 20px;">
+                <div style="position: relative; width: 100%;">
+                    <input type="text" id="distributer-search-input" placeholder="SEARCH BY LOCATION, CONTRACTOR"
+                        style="width: 100%; background: #FFEDDB; border: none; border-radius: 24px; padding: 12px 44px 12px 18px; font-size: 1rem; color: #000; outline: none; box-sizing: border-box; font-weight: 500;"
+                        onkeydown="if(event.key==='Enter'){document.getElementById('distributer-search-btn').click();}"
+                    />
+                    <button id="distributer-search-btn" class="distributer-search-icon-btn" tabindex="-1">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <div id="distributer-search-result-container"></div>
+            </div>
+        </div>
+
+       <!-- MILK SALE AGREEMENT SEARCH CONTAINER -->
+        <div id="milk-sale-search-container" style="display: none; width: 100%;">
+            <div style="padding: 15px 20px 0 20px; margin-bottom: 10px; margin-top: 20px;">
+                <div style="position: relative; width: 100%;">
+                    <input type="text" id="milk-sale-search-input" placeholder="SEARCH BY LOCATION, CONTRACTOR"
+                        style="width: 100%; background: #FFEDDB; border: none; border-radius: 24px; padding: 12px 44px 12px 18px; font-size: 1rem; color: #000; outline: none; box-sizing: border-box; font-weight: 500;"
+                        onkeydown="if(event.key==='Enter'){document.getElementById('milk-sale-search-btn').click();}"
+                    />
+                    <button id="milk-sale-search-btn" class="milk-sale-search-icon-btn" tabindex="-1">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <div id="milk-sale-search-result-container"></div>
+            </div>
+        </div>
    </div>
 </div>
 {% endblock %}
@@ -638,7 +1030,21 @@ document.addEventListener('DOMContentLoaded', function() {
         resetInputServiceSearchResults();
         resetConsultantSearchResults();
         resetCookSearchResults();
+        resetDistributerSearchResults();
+        resetMilkSaleSearchResults();
     }
+
+    // Reset Milk Sale Search Results
+    function resetMilkSaleSearchResults() {
+    document.getElementById('milk-sale-search-input').value = '';
+    document.getElementById('milk-sale-search-result-container').innerHTML = '';
+}
+
+    // Reset Distributer search results
+    function resetDistributerSearchResults() {
+    document.getElementById('distributer-search-input').value = '';
+    document.getElementById('distributer-search-result-container').innerHTML = '';
+}
 
     // Reset BMC search results
     function resetBmcSearchResults() {
@@ -677,6 +1083,8 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('input-service-search-container').style.display = 'none';
         document.getElementById('consultant-search-container').style.display = 'none';
         document.getElementById('cook-search-container').style.display = 'none';
+        document.getElementById('distributer-search-container').style.display = 'none';
+        document.getElementById('milk-sale-search-container').style.display = 'none';
     }
 
     // Update the view form based on selected agreement type
@@ -690,7 +1098,9 @@ document.addEventListener('DOMContentLoaded', function() {
             'bmc-active', 
             'input-service-active',
             'consultant-active',
-            'cook-active'
+            'cook-active',
+            'distributer-active',
+            'milk-sale-active'
         );
         
         // Hide all search containers
@@ -733,8 +1143,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateViewForm('consultant');
             } else if (viewForm.classList.contains('cook-active')) {
                 updateViewForm('cook');
+            } else if (viewForm.classList.contains('distributer-active')) {
+                updateViewForm('distributer');
+            } else if (viewForm.classList.contains('milk-sale-active')) {
+                updateViewForm('milk-sale');
             }
         });
+    });
+    // Add milk sale agreement click handler
+    document.getElementById('milk-sale-agreement').addEventListener('click', function() {
+    updateViewForm('milk-sale');
+    });
+    // Add click handlers for distributer type buttons 
+    document.getElementById('distributer-agreement').addEventListener('click', function() {
+    updateViewForm('distributer');
     });
 
     // Add click handlers for agreement type buttons
@@ -758,6 +1180,286 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('cook-agreement').addEventListener('click', function() {
         updateViewForm('cook');
     });
+
+    // Add milk sale search button handler
+document.getElementById('milk-sale-search-btn').addEventListener('click', function() {
+    const input = document.getElementById('milk-sale-search-input');
+    const query = input.value.trim();
+    const status = selectedStatus ? selectedStatus : '';
+    const resultDiv = document.getElementById('milk-sale-search-result-container');
+    resultDiv.innerHTML = '';
+    
+    if (query.length === 0) {
+        resultDiv.innerHTML = '<div class="milk-sale-no-result">Please enter a location or contractor.</div>';
+        return;
+    }
+
+    // Split query by comma for location and contractor
+    let location = '';
+    let contractor = '';
+    const parts = query.split(',');
+    if (parts.length > 0) location = parts[0].trim();
+    if (parts.length > 1) contractor = parts.slice(1).join(',').trim();
+
+    // Prepare query parameters
+    const params = new URLSearchParams();
+    if (location) params.append('location', location);
+    if (contractor) params.append('contractor', contractor);
+    if (status) params.append('status', status);
+
+    // Fetch milk sale agreement data from server
+    fetch(`/milk_sale/search/viewer/?${params.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.results && data.results.length > 0) {
+                let html = '';
+                // Process each result and create HTML cards
+                data.results.forEach(item => {
+                    // Create a unique ID for each PDF container
+                    const pdfContainerId = `pdf-container-milk-sale-${item.id}`;
+                    
+                    // Check if status is incomplete to show missing document message
+                    const missingDocMessage = (item.document_status && item.document_status.toUpperCase() === 'INCOMPLETE') 
+                        ? `<div style="padding:10px 0;width:100%;text-align:left;">
+                              <span>MISSING DOCUMENT:<span class="milk-sale-missing-doc">${item.pending_document || 'Not specified'}</span></span>
+                           </div>`
+                        : '';
+                    
+                    // Build the HTML for each milk sale agreement card
+                    html += `
+<div class="milk-sale-result-outer-card" style="background:#fff;">
+    <!-- Header row with field labels -->
+    <div class="data-field-container">
+        <div class="data-field">LOCATION</div>
+        <div class="data-field">CONTRACTOR</div>
+        <div class="data-field">AGREEMENT DATE</div>
+        <div class="data-field">DOCUMENT STATUS</div>
+    </div>
+    
+    <!-- Row with actual values -->
+    <div class="milk-sale-result-row" style="background:#fff; border-radius:0; padding:18px 0 0 0; font-size:1.1rem">
+        <div class="milk-sale-result-value" style="flex:1;text-align:center;">${item.location || '-'}</div>
+        <div class="milk-sale-result-value" style="flex:1;text-align:center;">${item.contractor || '-'}</div>
+        <div class="milk-sale-result-value" style="flex:1;text-align:center;">${formatDateDMY(item.agreement_date) || '-'}</div>
+        <div class="milk-sale-result-value" style="flex:1;text-align:center;">${item.document_status || '-'}</div>
+    </div>
+    
+    <!-- Detailed information section -->
+    <div class="milk-sale-result-inner-card" style="display:flex;flex-direction:row;align-items:center;gap:2px;">
+        <!-- Left side with agreement details -->
+        <div style="flex:2;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;height:220px;padding-left:10px;">
+            ${missingDocMessage}
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Agreement Start Date: ${item.start_date}</span>
+            </div>
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Agreement End Date: ${formatDateDMY(item.end_date)}</span>
+            </div>
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Expire in: <span class="milk-sale-result-expire">${item.expire_months !== undefined ? item.expire_months : '-'} month${item.expire_months == 1 ? '' : 's'} from today</span></span>
+            </div>
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Scanned & Inserted By: <span class="milk-sale-result-expire" style="color:#d9534f;">${item.created_by}</span></span>
+            </div>
+        </div>
+        
+        <!-- Right side with PDF preview -->
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+            <div class="bmc-preview-card" style="width:180px;height:220px;">
+                ${item.document_url ? `
+                <!-- PDF preview container -->
+                <div id="${pdfContainerId}" class="pdf-viewer-container" style="width:100%;height:100%;">
+                    <iframe class="bmc-preview-pdf" src="${item.document_url}#toolbar=0&navpanes=0&scrollbar=0" style="width:100%;height:100%;border:none;"></iframe>
+                </div>
+                ` : `
+                <!-- Placeholder if no PDF available -->
+                <div class="bmc-preview-placeholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">NO PDF</div>
+                `}
+            </div>
+            ${item.document_url ? `
+            <!-- Link to view full PDF -->
+            <a href="${item.document_url}" target="_blank" class="pdf-view-button">VIEW IN FULL PAGE</a>
+            ` : ''}
+        </div>
+    </div>
+</div>
+                    `;
+                });
+                // Insert all the generated HTML into the results container
+                resultDiv.innerHTML = html;
+
+                // Add fallback for PDFs that can't be embedded
+                document.querySelectorAll('.bmc-preview-pdf').forEach(iframe => {
+                    iframe.onload = function() {
+                        try {
+                            // Check if we can access the iframe content
+                            if (iframe.contentDocument || iframe.contentWindow.document) {
+                                // PDF loaded successfully
+                            }
+                        } catch (e) {
+                            // If we get a security error, show a link instead
+                            const container = iframe.parentElement;
+                            container.innerHTML = `
+                                <div style="text-align: center; padding: 20px; width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                                    <p>PDF cannot be previewed</p>
+                                    <a href="${iframe.src}" target="_blank" class="pdf-view-button">
+                                        VIEW PDF IN NEW TAB
+                                    </a>
+                                </div>
+                            `;
+                        }
+                    };
+                });
+            } else {
+                // Show message if no results found
+                resultDiv.innerHTML = '<div class="milk-sale-no-result">No milk sale agreements found.</div>';
+            }
+        })
+        .catch(() => {
+            // Show error message if fetch fails
+            resultDiv.innerHTML = '<div class="milk-sale-no-result">Error fetching milk sale agreements.</div>';
+        });
+});
+    
+    //DISTRIBUTER SEARCH BUTTON HANDLER
+    document.getElementById('distributer-search-btn').addEventListener('click', function() {
+    const input = document.getElementById('distributer-search-input');
+    const query = input.value.trim();
+    const status = selectedStatus ? selectedStatus : '';
+    const resultDiv = document.getElementById('distributer-search-result-container');
+    resultDiv.innerHTML = '';
+    
+    if (query.length === 0) {
+        resultDiv.innerHTML = '<div class="distributer-no-result">Please enter a location or contractor.</div>';
+        return;
+    }
+
+    // Split query by comma for location and contractor
+    let location = '';
+    let contractor = '';
+    const parts = query.split(',');
+    if (parts.length > 0) location = parts[0].trim();
+    if (parts.length > 1) contractor = parts.slice(1).join(',').trim();
+
+    // Prepare query parameters
+    const params = new URLSearchParams();
+    if (location) params.append('location', location);
+    if (contractor) params.append('contractor', contractor);
+    if (status) params.append('status', status);
+
+    // Fetch distributor agreement data from server
+    fetch(`/distributer/search/viewer/?${params.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.results && data.results.length > 0) {
+                let html = '';
+                // Process each result and create HTML cards
+                data.results.forEach(item => {
+                    // Create a unique ID for each PDF container
+                    const pdfContainerId = `pdf-container-distributer-${item.id}`;
+                    
+                    // Check if status is incomplete to show missing document message
+                    const missingDocMessage = (item.document_status && item.document_status.toUpperCase() === 'INCOMPLETE') 
+                        ? `<div style="padding:10px 0;width:100%;text-align:left;">
+                              <span>MISSING DOCUMENT:<span class="distributer-missing-doc">${item.pending_document || 'Not specified'}</span></span>
+                           </div>`
+                        : '';
+                    
+                    // Build the HTML for each distributor agreement card
+                    html += `
+<div class="distributer-result-outer-card" style="background:#fff;">
+    <!-- Header row with field labels -->
+    <div class="data-field-container">
+        <div class="data-field">LOCATION</div>
+        <div class="data-field">CONTRACTOR</div>
+        <div class="data-field">AGREEMENT DATE</div>
+        <div class="data-field">DOCUMENT STATUS</div>
+    </div>
+    
+    <!-- Row with actual values -->
+    <div class="distributer-result-row" style="background:#fff; border-radius:0; padding:18px 0 0 0; font-size:1.1rem">
+        <div class="distributer-result-value" style="flex:1;text-align:center;">${item.location || '-'}</div>
+        <div class="distributer-result-value" style="flex:1;text-align:center;">${item.contractor || '-'}</div>
+        <div class="distributer-result-value" style="flex:1;text-align:center;">${formatDateDMY(item.agreement_date) || '-'}</div>
+        <div class="distributer-result-value" style="flex:1;text-align:center;">${item.document_status || '-'}</div>
+    </div>
+    
+    <!-- Detailed information section -->
+    <div class="distributer-result-inner-card" style="display:flex;flex-direction:row;align-items:center;gap:2px;">
+        <!-- Left side with agreement details -->
+        <div style="flex:2;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;height:220px;padding-left:10px;">
+            ${missingDocMessage}
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Agreement Start Date: ${item.start_date}</span>
+            </div>
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Agreement End Date: ${formatDateDMY(item.end_date)}</span>
+            </div>
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Expire in: <span class="distributer-result-expire">${item.expire_months !== undefined ? item.expire_months : '-'} month${item.expire_months == 1 ? '' : 's'} from today</span></span>
+            </div>
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Scanned & Inserted By: <span class="distributer-result-expire" style="color:#d9534f;">${item.created_by}</span></span>
+            </div>
+        </div>
+        
+        <!-- Right side with PDF preview -->
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+            <div class="bmc-preview-card" style="width:180px;height:220px;">
+                ${item.document_url ? `
+                <!-- PDF preview container -->
+                <div id="${pdfContainerId}" class="pdf-viewer-container" style="width:100%;height:100%;">
+                    <iframe class="bmc-preview-pdf" src="${item.document_url}#toolbar=0&navpanes=0&scrollbar=0" style="width:100%;height:100%;border:none;"></iframe>
+                </div>
+                ` : `
+                <!-- Placeholder if no PDF available -->
+                <div class="bmc-preview-placeholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">NO PDF</div>
+                `}
+            </div>
+            ${item.document_url ? `
+            <!-- Link to view full PDF -->
+            <a href="${item.document_url}" target="_blank" class="pdf-view-button">VIEW IN FULL PAGE</a>
+            ` : ''}
+        </div>
+    </div>
+</div>
+                    `;
+                });
+                // Insert all the generated HTML into the results container
+                resultDiv.innerHTML = html;
+
+                // Add fallback for PDFs that can't be embedded
+                document.querySelectorAll('.bmc-preview-pdf').forEach(iframe => {
+                    iframe.onload = function() {
+                        try {
+                            // Check if we can access the iframe content
+                            if (iframe.contentDocument || iframe.contentWindow.document) {
+                                // PDF loaded successfully
+                            }
+                        } catch (e) {
+                            // If we get a security error, show a link instead
+                            const container = iframe.parentElement;
+                            container.innerHTML = `
+                                <div style="text-align: center; padding: 20px; width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                                    <p>PDF cannot be previewed</p>
+                                    <a href="${iframe.src}" target="_blank" class="pdf-view-button">
+                                        VIEW PDF IN NEW TAB
+                                    </a>
+                                </div>
+                            `;
+                        }
+                    };
+                });
+            } else {
+                // Show message if no results found
+                resultDiv.innerHTML = '<div class="distributer-no-result">No distributor agreements found.</div>';
+            }
+        })
+        .catch(() => {
+            // Show error message if fetch fails
+            resultDiv.innerHTML = '<div class="distributer-no-result">Error fetching distributor agreements.</div>';
+        });
+});
 
     // COOK SEARCH BUTTON HANDLER
     document.getElementById('cook-search-btn').addEventListener('click', function() {

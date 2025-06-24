@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Viewer{% endblock %}
+{% block title %}Data Entry{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -1786,7 +1786,8 @@ input[placeholder]::placeholder {
   <div style="font-size:1.3rem; color:#096B68; font-weight:600;">SUBMIT SUCCESSFULLY</div>
 </div>
         <div class="form-title">Distributer Agreement Entry Form</div>
-        <form>
+                <form method="post" enctype="multipart/form" action="{% url 'distributer-create'%}">
+                    {% csrf_token %}
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Zone</label>
@@ -1904,11 +1905,12 @@ input[placeholder]::placeholder {
         <div style="padding: 15px 20px 0 20px; margin-bottom: 10px; margin-top: 20px;">
             <div style="position: relative; width: 100%;">
                 <input
+                    id="distributer-search-input"
                     type="text"
-                    placeholder="SEARCH BY LOCATION"
+                    placeholder="SEARCH BY LOCATION, CONTRACTOR"
                     style="width: 100%; background: #FFEDDB; border: none; border-radius: 24px; padding: 12px 44px 12px 18px; font-size: 1rem; color: #000; outline: none; box-sizing: border-box; font-weight: 500;"
                 />
-                <span style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%) rotate(-20deg); color: #2C2C2C; font-size: 1.2rem; pointer-events: none;">
+                <span id="distributer-search-icon" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%) rotate(-20deg); color: #2C2C2C; font-size: 1.2rem; pointer-events: none;">
                     <i class="fas fa-search"></i>
                 </span>
             </div>
@@ -1927,7 +1929,8 @@ input[placeholder]::placeholder {
   <div style="font-size:1.3rem; color:#096B68; font-weight:600;">SUBMIT SUCCESSFULLY</div>
 </div>
         <div class="form-title">Milk Sale Agreement Entry Form</div>
-        <form>
+        <form method="post" enctype="multipart/form" action="{% url 'milk_sale-create'%}">
+            {% csrf_token %}
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Zone</label>
@@ -2007,6 +2010,10 @@ input[placeholder]::placeholder {
      <div class="form-card" id="milk_sale-edit-card" style="display:none;">
     <div class="form-success-message" style="display:none;">
         <!-- ...success SVG... -->
+                <svg class="tick-animate" width="60" height="60" viewBox="0 0 60 60" style="margin-bottom:18px; display:block;">
+                    <circle cx="30" cy="30" r="28" fill="none" stroke="#27ae60" stroke-width="4" opacity="0.15"/>
+                    <polyline points="18,32 27,41 43,23" fill="none" stroke="#27ae60" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
         <div style="font-size:1.3rem; color:#096B68; font-weight:600;">SUBMIT SUCCESSFULLY</div>
     </div>
     <div style="padding-top:15px; padding-bottom:32px;">
@@ -2045,11 +2052,12 @@ input[placeholder]::placeholder {
         <div style="padding: 15px 20px 0 20px; margin-bottom: 10px; margin-top: 20px;">
             <div style="position: relative; width: 100%;">
                 <input
+                    id="milk_sale-search-input"
                     type="text"
-                    placeholder="SEARCH BY LOCATION"
+                    placeholder="SEARCH BY LOCATION, CONTRACTOR"
                     style="width: 100%; background: #FFEDDB; border: none; border-radius: 24px; padding: 12px 44px 12px 18px; font-size: 1rem; color: #000; outline: none; box-sizing: border-box; font-weight: 500;"
                 />
-                <span style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%) rotate(-20deg); color: #2C2C2C; font-size: 1.2rem; pointer-events: none;">
+                <span id="milk_sale-search-icon" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%) rotate(-20deg); color: #2C2C2C; font-size: 1.2rem; pointer-events: none;">
                     <i class="fas fa-search"></i>
                 </span>
             </div>
@@ -3178,6 +3186,466 @@ function getCookie(name) {
             alert('Could not load PDF for preview.');
         });
 }
+
+// --- MILK SALE AGREEMENT SEARCH/EDIT ---
+let milkSaleSearchInput, milkSaleSearchIcon, milkSaleSearchResult;
+
+function parseMilkSaleSearchInput(input) {
+    const parts = input.split(',');
+    const location = parts[0] ? parts[0].trim() : '';
+    const contractor = parts[1] ? parts[1].trim() : '';
+    return { location, contractor };
+}
+
+function searchMilkSaleAgreement() {
+    const input = milkSaleSearchInput.value.trim();
+    const { location, contractor } = parseMilkSaleSearchInput(input);
+    
+    if (!location || !contractor) {
+        milkSaleSearchResult.innerHTML = '<div style="margin:20px 0; color:#fff; text-align:center;">Please enter both location and contractor, separated by a comma.</div>';
+        return;
+    }
+    
+    fetch(`/milk_sale/search/?location=${encodeURIComponent(location)}&contractor=${encodeURIComponent(contractor)}`)
+        .then(res => res.json())
+        .then(data => renderMilkSaleResultCard(data.results))
+        .catch(() => {
+            milkSaleSearchResult.innerHTML = '<div style="margin:20px 0; color:#fff; text-align:center;">Error fetching data.</div>';
+        });
+}
+
+function renderMilkSaleResultCard(data) {
+    if (!data || data.length === 0) {
+        milkSaleSearchResult.innerHTML = '<div style="margin:20px 0; color:#fff; text-align:center;">No results found (Either it is a complete document or you entered the wrong location/contractor)</div>';
+        return;
+    }
+    
+    const obj = data[0];
+    window.currentMilkSaleId = obj.id;
+    
+    milkSaleSearchResult.innerHTML = `
+        <div style="background: #DEBA9D; border-radius: 18px; padding: 28px; margin: 18px 0 0 0; color: #2C2C2C; font-size: 1rem; box-shadow: 0 2px 12px rgba(0,0,0,0.10); width: 100%; box-sizing: border-box;">
+            <div style="display: flex; font-weight: 700; gap: 24px; border-bottom: 1px solid #c9a98b; padding-bottom: 8px;">
+                <div style="flex:1;">LOCATION</div>
+                <div style="flex:1;">CONTRACTOR</div>
+                <div style="flex:1;">DOCUMENT STATUS</div>
+                <div style="flex:1;">MISSING DOCUMENT</div>
+            </div>
+            <div style="display: flex; gap: 24px; margin-top: 8px; margin-bottom: 24px;">
+                <div style="flex:1;">${obj.location}</div>
+                <div style="flex:1;">${obj.contractor}</div>
+                <div style="flex:1;">
+                    <select id="milk-sale-edit-doc-status" style="padding: 6px 12px; border-radius: 8px; background: #DEBA9D; font-weight: 500;">
+                        <option value="INCOMPLETE" ${obj.document_status === 'INCOMPLETE' ? 'selected' : ''}>INCOMPLETE</option>
+                        <option value="COMPLETE" ${obj.document_status === 'COMPLETE' ? 'selected' : ''}>COMPLETE</option>
+                    </select>
+                </div>
+                <div style="flex:1;">
+                    <input id="milk-sale-edit-missing-document" type="text" value="${obj.document_pending || ''}" style="width:90%;padding:6px 10px;border-radius:8px;border:1px solid #c9a98b;background:#fff;color:#333;font-size:1rem;">
+                </div>
+            </div>
+            <div style="display: flex; justify-content: center;">
+                <div style="border: 2px dashed #b48b5a; border-radius: 16px; padding: 18px 32px; background: #D5CEA3; min-width: 220px; text-align: center; display: flex; flex-direction: column; align-items: center;">
+                    <div style="font-weight:600; margin-bottom:6px;">DOCUMENT</div>
+                    ${
+                        obj.document_url
+                        ? `<span style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <a href="${obj.document_url}" target="_blank" style="color:#8a5c2b; text-decoration: none; pointer-events: none; cursor: default;" id="milk-sale-doc-link">${obj.document_name}</a>
+                                <span style="cursor:pointer;" id="milk-sale-doc-edit">
+                                    <i class="fas fa-edit" style="color:#8a5c2b; font-size:1.1rem;" title="View/Edit PDF"></i>
+                                </span>
+                           </span>
+                           <div style="margin-top:18px; padding-left:11px">
+                                <label for="milkSaleInsertPdfInput" style="background:#A0C49D; color:#333; padding:10px 10px 10px 10px; border-radius:8px; cursor:pointer; font-weight:500;">
+                                    UPLOAD PDF
+                                    <input type="file" id="milkSaleInsertPdfInput" accept="application/pdf" style="display:none;">
+                                </label>
+                                <span id="milkSaleInsertPdfFilename" style="margin-left:10px; color:#8a5c2b; font-size:0.95rem;"></span>
+                            </div>
+                        `
+                        : `<span style="color:#b48b5a;">No document uploaded</span>`
+                    }
+                </div>
+            </div>
+            <div style="text-align:center; margin-top:24px;">
+                <button id="milk-sale-edit-submit" style="background:#8A784E; color:#000; border:none; border-radius:8px; padding:10px 32px; font-size:1.1rem; cursor:pointer;">
+                    SUBMIT
+                </button>
+            </div>
+        </div>
+    `;
+    
+    setTimeout(() => {
+        // PDF preview logic
+        const editIcon = document.getElementById('milk-sale-doc-edit');
+        if(editIcon) {
+            editIcon.addEventListener('click', function(){
+                const docLink = document.getElementById('milk-sale-doc-link');
+                if(docLink && docLink.href) {
+                    openPdfInModal(docLink.href);
+                }
+            });
+        }
+
+        // File selection logic
+        const insertInput = document.getElementById('milkSaleInsertPdfInput');
+        const insertFilename = document.getElementById('milkSaleInsertPdfFilename');
+        let insertedPdfFile = null;
+
+        if (insertInput) {
+            insertInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file && file.type === 'application/pdf') {
+                    insertFilename.textContent = file.name;
+                    insertedPdfFile = file;
+                } else {
+                    insertFilename.textContent = '';
+                    insertedPdfFile = null;
+                    alert('Please select a valid PDF file.');
+                }
+            });
+        }
+
+        // Submit button logic
+        const submitBtn = document.getElementById('milk-sale-edit-submit');
+        if (submitBtn) {
+            submitBtn.addEventListener('click', function() {
+                const statusSelect = document.getElementById('milk-sale-edit-doc-status');
+                const milkSaleId = window.currentMilkSaleId;
+                const missingDocInput = document.getElementById('milk-sale-edit-missing-document');
+                
+                if (!milkSaleId) {
+                    alert('Milk Sale Agreement ID not found.');
+                    return;
+                }
+                
+                if (!insertedPdfFile) {
+                    alert('Please select a PDF to insert.');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('document_status', statusSelect.value);
+                formData.append('insert_pdf', insertedPdfFile);
+                formData.append('pending_document', missingDocInput ? missingDocInput.value : '');
+
+                fetch(`/milk_sale/edit-merge/${milkSaleId}/`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const editCard = document.getElementById('milk_sale-edit-card');
+                        const successMsg = editCard.querySelector('.form-success-message');
+                        if (successMsg) {
+                            successMsg.style.display = 'flex';
+                        }
+                        editCard.classList.add('success-active');
+                        setTimeout(() => {
+                            if (successMsg) successMsg.style.display = 'none';
+                            editCard.classList.remove('success-active');
+                            editCard.style.display = 'none';
+                            milkSaleSearchResult.innerHTML = '';
+                            updateAgreementStats('milk_sale');
+                        }, 2000);
+                    } else {
+                        alert('Error: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(err => {
+                    alert('Error: ' + err.message);
+                });
+            });
+        }
+    }, 0);
+}
+
+// Initialize milk sale search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    milkSaleSearchInput = document.getElementById('milk_sale-search-input');
+    milkSaleSearchIcon = document.getElementById('milk_sale-search-icon');
+    milkSaleSearchResult = document.getElementById('milk_sale-search-result');
+    
+    if(milkSaleSearchInput && milkSaleSearchIcon) {
+        milkSaleSearchInput.addEventListener('keydown', function(e) {
+            if(e.key === 'Enter') {
+                e.preventDefault();
+                searchMilkSaleAgreement();
+            }
+        });
+        
+        milkSaleSearchIcon.addEventListener('click', function() {
+            searchMilkSaleAgreement();
+        });
+    }
+});
+
+function updateAgreementStats(type) {
+    if (type === 'milk_sale') {
+        fetch('/milk_sale/stats/')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('milk_sale-total-count').textContent = data.total;
+                document.getElementById('milk_sale-complete-count').textContent = data.complete;
+                document.getElementById('milk_sale-incomplete-count').textContent = data.incomplete;
+            });
+    }
+}
+
+//DISTRIBUTER AGREEMENT EDIT AND SEARCH
+let distributerSearchInput, distributerSearchIcon, distributerSearchResult;
+
+function parseDistributerSearchInput(input) {
+    console.log('Parsing input:', input); // Log the raw input
+    const parts = input.split(',');
+    const location = parts[0] ? parts[0].trim() : '';
+    const contractor = parts[1] ? parts[1].trim() : '';
+    console.log('Parsed result:', { location, contractor }); // Log the parsed result
+    return { location, contractor };
+}
+
+function searchDistributerAgreement() {
+    const input = distributerSearchInput.value.trim();
+    console.log('Search initiated with input:', input); // Log the search input
+    
+    const { location, contractor } = parseDistributerSearchInput(input);
+    
+    if (!location || !contractor) {
+        console.log('Validation failed - missing location or contractor');
+        distributerSearchResult.innerHTML = '<div style="margin:20px 0; color:#fff; text-align:center;">Please enter both location and contractor, separated by a comma.</div>';
+        return;
+    }
+    
+    console.log('Making API request with:', { location, contractor }); // Log before API call
+    fetch(`/distributer/search/?location=${encodeURIComponent(location)}&contractor=${encodeURIComponent(contractor)}`)
+        .then(res => {
+            console.log('API response status:', res.status); // Log response status
+            return res.json();
+        })
+        .then(data => {
+            console.log('API response data:', data); // Log full API response
+            renderDistributerResultCard(data.results);
+        })
+        .catch((err) => {
+            console.error('API error:', err); // Log any errors
+            distributerSearchResult.innerHTML = '<div style="margin:20px 0; color:#fff; text-align:center;">Error fetching data.</div>';
+        });
+}
+
+function renderDistributerResultCard(data) {
+    console.log('Rendering result card with data:', data); // Log the data being rendered
+    
+    if (!data || data.length === 0) {
+        console.log('No results found');
+        distributerSearchResult.innerHTML = '<div style="margin:20px 0; color:#fff; text-align:center;">No results found (Either it is a complete document or you entered the wrong location/contractor)</div>';
+        return;
+    }
+    
+    const obj = data[0];
+    console.log('Rendering object:', obj); // Log the specific object being rendered
+    window.currentDistributerId = obj.id;
+    console.log('Set currentDistributerId:', window.currentDistributerId); // Log the ID
+    
+    distributerSearchResult.innerHTML = `
+        <div style="background: #DEBA9D; border-radius: 18px; padding: 28px; margin: 18px 0 0 0; color: #2C2C2C; font-size: 1rem; box-shadow: 0 2px 12px rgba(0,0,0,0.10); width: 100%; box-sizing: border-box;">
+            <div style="display: flex; font-weight: 700; gap: 24px; border-bottom: 1px solid #c9a98b; padding-bottom: 8px;">
+                <div style="flex:1;">LOCATION</div>
+                <div style="flex:1;">CONTRACTOR</div>
+                <div style="flex:1;">DOCUMENT STATUS</div>
+                <div style="flex:1;">MISSING DOCUMENT</div>
+            </div>
+            <div style="display: flex; gap: 24px; margin-top: 8px; margin-bottom: 24px;">
+                <div style="flex:1;">${obj.location}</div>
+                <div style="flex:1;">${obj.contractor}</div>
+                <div style="flex:1;">
+                    <select id="distributer-edit-doc-status" style="padding: 6px 12px; border-radius: 8px; background: #DEBA9D; font-weight: 500;">
+                        <option value="INCOMPLETE" ${obj.document_status === 'INCOMPLETE' ? 'selected' : ''}>INCOMPLETE</option>
+                        <option value="COMPLETE" ${obj.document_status === 'COMPLETE' ? 'selected' : ''}>COMPLETE</option>
+                    </select>
+                </div>
+                <div style="flex:1;">
+                    <input id="distributer-edit-missing-document" type="text" value="${obj.document_pending || ''}" style="width:90%;padding:6px 10px;border-radius:8px;border:1px solid #c9a98b;background:#fff;color:#333;font-size:1rem;">
+                </div>
+            </div>
+            <div style="display: flex; justify-content: center;">
+                <div style="border: 2px dashed #b48b5a; border-radius: 16px; padding: 18px 32px; background: #D5CEA3; min-width: 220px; text-align: center; display: flex; flex-direction: column; align-items: center;">
+                    <div style="font-weight:600; margin-bottom:6px;">DOCUMENT</div>
+                    ${
+                        obj.document_url
+                        ? `<span style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <a href="${obj.document_url}" target="_blank" style="color:#8a5c2b; text-decoration: none; pointer-events: none; cursor: default;" id="distributer-doc-link">${obj.document_name}</a>
+                                <span style="cursor:pointer;" id="distributer-doc-edit">
+                                    <i class="fas fa-edit" style="color:#8a5c2b; font-size:1.1rem;" title="View/Edit PDF"></i>
+                                </span>
+                           </span>
+                           <div style="margin-top:18px; padding-left:11px">
+                                <label for="distributerInsertPdfInput" style="background:#A0C49D; color:#333; padding:10px 10px 10px 10px; border-radius:8px; cursor:pointer; font-weight:500;">
+                                    UPLOAD PDF
+                                    <input type="file" id="distributerInsertPdfInput" accept="application/pdf" style="display:none;">
+                                </label>
+                                <span id="distributerInsertPdfFilename" style="margin-left:10px; color:#8a5c2b; font-size:0.95rem;"></span>
+                            </div>
+                        `
+                        : `<span style="color:#b48b5a;">No document uploaded</span>`
+                    }
+                </div>
+            </div>
+            <div style="text-align:center; margin-top:24px;">
+                <button id="distributer-edit-submit" style="background:#8A784E; color:#000; border:none; border-radius:8px; padding:10px 32px; font-size:1.1rem; cursor:pointer;">
+                    SUBMIT
+                </button>
+            </div>
+        </div>
+    `;
+    
+    setTimeout(() => {
+        console.log('Setting up event listeners for the rendered card');
+        
+        // PDF preview logic
+        const editIcon = document.getElementById('distributer-doc-edit');
+        if(editIcon) {
+            editIcon.addEventListener('click', function(){
+                const docLink = document.getElementById('distributer-doc-link');
+                console.log('Edit icon clicked, docLink:', docLink);
+                if(docLink && docLink.href) {
+                    console.log('Opening PDF:', docLink.href);
+                    openPdfInModal(docLink.href);
+                }
+            });
+        }
+
+        // File selection logic
+        const insertInput = document.getElementById('distributerInsertPdfInput');
+        const insertFilename = document.getElementById('distributerInsertPdfFilename');
+        let insertedPdfFile = null;
+
+        if (insertInput) {
+            insertInput.addEventListener('change', function(e) {
+                console.log('File input changed');
+                const file = e.target.files[0];
+                console.log('Selected file:', file);
+                if (file && file.type === 'application/pdf') {
+                    insertFilename.textContent = file.name;
+                    insertedPdfFile = file;
+                    console.log('PDF file accepted:', file.name);
+                } else {
+                    insertFilename.textContent = '';
+                    insertedPdfFile = null;
+                    console.log('Invalid file selected');
+                    alert('Please select a valid PDF file.');
+                }
+            });
+        }
+
+        // Submit button logic
+        const submitBtn = document.getElementById('distributer-edit-submit');
+        if (submitBtn) {
+            submitBtn.addEventListener('click', function() {
+                console.log('Submit button clicked');
+                const statusSelect = document.getElementById('distributer-edit-doc-status');
+                const distributerId = window.currentDistributerId;
+                const missingDocInput = document.getElementById('distributer-edit-missing-document');
+                
+                console.log('Submit data:', {
+                    distributerId,
+                    document_status: statusSelect.value,
+                    missing_document: missingDocInput ? missingDocInput.value : '',
+                    pdf_file: insertedPdfFile ? insertedPdfFile.name : 'none'
+                });
+                
+                if (!distributerId) {
+                    console.error('Distributor Agreement ID not found');
+                    alert('Distributor Agreement ID not found.');
+                    return;
+                }
+                
+                if (!insertedPdfFile) {
+                    console.error('No PDF file selected');
+                    alert('Please select a PDF to insert.');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('document_status', statusSelect.value);
+                formData.append('insert_pdf', insertedPdfFile);
+                formData.append('pending_document', missingDocInput ? missingDocInput.value : '');
+
+                console.log('Submitting form data');
+                fetch(`/distributer/edit-merge/${distributerId}/`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                })
+                .then(res => {
+                    console.log('Edit API response status:', res.status);
+                    return res.json();
+                })
+                .then(data => {
+                    console.log('Edit API response data:', data);
+                    if (data.success) {
+                        console.log('Edit successful');
+                        const editCard = document.getElementById('distributer-edit-card');
+                        const successMsg = editCard.querySelector('.form-success-message');
+                        if (successMsg) {
+                            successMsg.style.display = 'flex';
+                        }
+                        editCard.classList.add('success-active');
+                        setTimeout(() => {
+                            if (successMsg) successMsg.style.display = 'none';
+                            editCard.classList.remove('success-active');
+                            editCard.style.display = 'none';
+                            distributerSearchResult.innerHTML = '';
+                            updateAgreementStats('distributer');
+                        }, 2000);
+                    } else {
+                        console.error('Edit failed:', data.error || 'Unknown error');
+                        alert('Error: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(err => {
+                    console.error('Edit request failed:', err);
+                    alert('Error: ' + err.message);
+                });
+            });
+        }
+    }, 0);
+}
+
+// Initialize distributor search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOMContentLoaded - initializing distributor search');
+    distributerSearchInput = document.getElementById('distributer-search-input');
+    distributerSearchIcon = document.getElementById('distributer-search-icon');
+    distributerSearchResult = document.getElementById('distributer-search-result');
+    
+    console.log('Elements found:', {
+        input: distributerSearchInput,
+        icon: distributerSearchIcon,
+        result: distributerSearchResult
+    });
+    
+    if(distributerSearchInput && distributerSearchIcon) {
+        distributerSearchInput.addEventListener('keydown', function(e) {
+            if(e.key === 'Enter') {
+                console.log('Enter key pressed in search input');
+                e.preventDefault();
+                searchDistributerAgreement();
+            }
+        });
+        
+        distributerSearchIcon.addEventListener('click', function() {
+            console.log('Search icon clicked');
+            searchDistributerAgreement();
+        });
+    }
+});
+
 // --- COOK AGREEMENT SEARCH/EDIT ---
 
 let cookSearchInput, cookSearchIcon, cookSearchResult;

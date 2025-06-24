@@ -34,18 +34,33 @@ urlpatterns = [
     path('consultant/search/', consultant_search, name='consultant-search'),
     path('consultant/edit-merge/<int:pk>/', consultant_edit_merge, name="consultant-edit-merge"),
     path('consultant/search/viewer/', consultant_search_viewer, name='consultant_search_viewer'),
-    path('consultant/stats/', bmc_stats, name='bmc-stats'),
+    path('consultant/stats/', consultant_stats, name='consultant-stats'),
 
-    # ----------all cook agreement ulrs-----------------------
+    # ----------all cook agreement urls-----------------------
     
     path('cook/create/', cook_create, name='cook-create'),
     path('cook/search/', cook_search, name='cook-search'),
-    path('cook/stats/', bmc_stats, name='bmc-stats'),
     path('cook/edit-merge/<int:pk>/', cook_edit_merge, name="cook-edit-merge"),
     path('cook/search/viewer/', cook_search_viewer, name='cook_search_viewer'),
+    path('cook/stats/', cook_stats, name='cook-stats'),
+
+    # --------all distributer urls-----------------------------------
+    path('distributer/create/', distributer_create, name='distributer-create'),
+    path('distributer/search/', distributer_search, name='distributer-search'),
+    path('distributer/edit-merge/<int:pk>/', distributer_edit_merge, name="distributer-edit-merge"),
+    path('distributer/search/viewer/', distributer_search_viewer, name='distributer_search_viewer'),
+    path('distributer/stats/', distributer_stats, name='distributer-stats'),
+
+    # ---------all milk_sale urls---------------------------------------
+    path('milk_sale/create/', milk_sale_create, name='milk_sale-create'),
+    path('milk_sale/search/', milk_sale_search, name='milk_sale-search'),
+    path('milk_sale/edit-merge/<int:pk>/', milk_sale_edit_merge, name="milk_sale-edit-merge"),
+    path('milk_sale/stats/', milk_sale_stats, name='milk_sale-stats'),
+    path('milk_sale/search/viewer/', milk_sale_search_viewer, name='milk_sale_search_viewer'),
+
+    # --------all mcc agreements urls------------------------------------
 
     
-    path('distributer/stats/', bmc_stats, name='bmc-stats'),
     path('milk_sale/stats/', bmc_stats, name='bmc-stats'),
     path('mcc/stats/', bmc_stats, name='bmc-stats'),
     path('mpacs/stats/', bmc_stats, name='bmc-stats'),

@@ -3,6 +3,8 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from .managers import CustomUserManager
 from django.db import models
 from django.core.validators import FileExtensionValidator
+from django.utils.timezone import localtime
+from pytz import timezone
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     ROLE_CHOICES = [
@@ -320,3 +322,25 @@ class RTAAgreement(BaseAgreement):
     class Meta:
         verbose_name = "RTA Agreement"
         verbose_name_plural = "RTA Agreements"
+
+
+
+# MODELS FOR STORING USER ACTION IN THE DATABASE. 
+IST = timezone('Asia/Kolkata')  # Indian Standard Time
+
+class UserActionLog(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True)
+    path = models.CharField(max_length=500)
+    method = models.CharField(max_length=10)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(null=True, blank=True)
+    data = models.TextField(null=True, blank=True)  # JSON or key-value string of changes
+    changes = models.TextField(null=True, blank=True)  # Human-readable or JSON field describing what changed
+
+    def __str__(self):
+        return f"{self.user} - {self.method} - {self.path}"
+
+    def get_local_timestamp(self):
+        return localtime(self.timestamp, IST).strftime("%d-%m-%Y %I:%M %p")  # IST format
+
