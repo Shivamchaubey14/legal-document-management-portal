@@ -59,6 +59,34 @@ urlpatterns = [
     path('milk_sale/search/viewer/', milk_sale_search_viewer, name='milk_sale_search_viewer'),
 
     # --------all mcc agreements urls------------------------------------
+    path('mcc/create/', mcc_create, name='mcc-create'),
+    path('mcc/search/', mcc_search, name='mcc-search'),
+    path('mcc/stats/', mcc_stats, name='mcc-stats'),
+    path('mcc/edit-merge/<int:pk>/', mcc_edit_merge, name="mcc-edit-merge"),
+    path('mcc/search/viewer/', mcc_search_viewer, name='mcc_search_viewer'),
+
+    # -------all mpacs agreement urls------------------------------------
+    path('mpacs/create/', mpacs_create, name='mpacs-create'),
+    path('mpacs/stats/', mpacs_stats, name='mpacs-stats'),
+    path('mpacs/search/', mpacs_search, name='mpacs-search'),
+    path('mpacs/edit-merge/<int:pk>/', mpacs_edit_merge, name="mpacs-edit-merge"),
+    path('mpacs/search/viewer/', mpacs_search_viewer, name='mpacs_search_viewer'),
+
+    # --------all rta agreement urls-----------------------------------
+    path('rta/create/', rta_create, name='rta-create'),
+    path('rta/search/', rta_search, name='rta-search'),
+    path('rta/edit-merge/<int:pk>/', rta_edit_merge, name="rta-edit-merge"),
+    path('rta/search/viewer/', rta_search_viewer, name='rta_search_viewer'),
+    path('rta/stats/', rta_stats, name='rta-stats'),
+
+    # --------all godown agreement urls------------------------------
+    path('godown/create/', godown_create , name='godown-create'),
+    path('godown/search/', godown_search, name='godown-search'),
+    path('godown/edit-merge/<int:pk>/', godown_edit_merge, name="godown-edit-merge"),
+    path('godown/search/viewer/', godown_search_viewer, name='godown_search_viewer'),
+    path('godown/stats/', godown_stats, name='godown-stats'),
+
+    # 
 
     
     path('milk_sale/stats/', bmc_stats, name='bmc-stats'),

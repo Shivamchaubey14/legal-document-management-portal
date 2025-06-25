@@ -3,6 +3,442 @@
 {% block title %}Viewer{% endblock %}
 {% block extra_head %}
 <style>
+    /* GODOWN AGREEMENT STYLES */
+.godown-result-outer-card {
+    background: #fff;
+    border-radius: 22px;
+    box-shadow: 0 2px 16px rgba(7,91,94,0.13);
+    margin: 22px 0 0 0;
+    padding: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    transition: box-shadow 0.2s;
+}
+.godown-result-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 22px 32px 12px 32px;
+    border-radius: 22px 22px 0 0;
+    background: #fff;
+    font-size: 1.13rem;
+    font-weight: 100;
+    color: #000;
+}
+.godown-result-row > div {
+    flex: 1;
+    text-align: center;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+.godown-result-value {
+    font-size: 1.1rem;
+    color: #333;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+}
+.godown-result-inner-card {
+    background: #C1DBB3;
+    border-radius: 18px;
+    margin: 22px 22px 22px 22px;
+    padding: 18px 24px 18px 24px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(7,91,94,0.10);
+    font-size: 1.08rem;
+    font-weight: 500;
+    color: #075B5E;
+}
+.godown-result-inner-card > div {
+    flex: 1;
+    text-align: center;
+}
+.godown-result-expire {
+    background: #fff;
+    color: #d9534f;
+    border-radius: 12px;
+    padding: 6px 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-left: 10px;
+    display: inline-block;
+}
+.godown-missing-doc {
+    background: #fff;
+    color: #d9534f;
+    border-radius: 12px;
+    padding: 6px 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-left: 10px;
+    display: inline-block;
+}
+.godown-no-result {
+    color: #fff;
+    text-align: center;
+    margin-top: 18px;
+    font-size: 1.1rem;
+}
+.godown-search-icon-btn {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%) rotate(-20deg);
+    color: #2C2C2C;
+    font-size: 1.2rem;
+    background: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 2;
+}
+.form-card.godown-active {
+    background: #075B5E !important;
+    color: #fff !important;
+    margin: 10px 20px 10px 20px !important;
+    border-radius: 18px;
+    min-height: 100%;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    padding: 32px 24px;
+    display: flex;
+    font-size: 1.25rem;
+    font-weight: 600;
+    flex-direction: column;
+}
+    /* RTA AGREEMENT STYLES (CONSISTENT WITH OTHER AGREEMENTS) */
+.rta-result-outer-card {
+    background: #fff;
+    border-radius: 22px;
+    box-shadow: 0 2px 16px rgba(7,91,94,0.13);
+    margin: 22px 0 0 0;
+    padding: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    transition: box-shadow 0.2s;
+}
+.rta-result-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 22px 32px 12px 32px;
+    border-radius: 22px 22px 0 0;
+    background: #fff;
+    font-size: 1.13rem;
+    font-weight: 100;
+    color: #000;
+}
+.rta-result-row > div {
+    flex: 1;
+    text-align: center;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+.rta-result-value {
+    font-size: 1.1rem;
+    color: #333;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+}
+.rta-result-inner-card {
+    background: #C1DBB3;
+    border-radius: 18px;
+    margin: 22px 22px 22px 22px;
+    padding: 18px 24px 18px 24px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(7,91,94,0.10);
+    font-size: 1.08rem;
+    font-weight: 500;
+    color: #075B5E;
+}
+.rta-result-inner-card > div {
+    flex: 1;
+    text-align: center;
+}
+.rta-result-expire {
+    background: #fff;
+    color: #d9534f;
+    border-radius: 12px;
+    padding: 6px 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-left: 10px;
+    display: inline-block;
+}
+.rta-missing-doc {
+    background: #fff;
+    color: #d9534f;
+    border-radius: 12px;
+    padding: 6px 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-left: 10px;
+    display: inline-block;
+}
+.rta-no-result {
+    color: #fff;
+    text-align: center;
+    margin-top: 18px;
+    font-size: 1.1rem;
+}
+.rta-search-icon-btn {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%) rotate(-20deg);
+    color: #2C2C2C;
+    font-size: 1.2rem;
+    background: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 2;
+}
+.form-card.rta-active {
+    background: #075B5E !important;
+    color: #fff !important;
+    margin: 10px 20px 10px 20px !important;
+    border-radius: 18px;
+    min-height: 100%;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    padding: 32px 24px;
+    display: flex;
+    font-size: 1.25rem;
+    font-weight: 600;
+    flex-direction: column;
+}
+    /* MPACS AGREEMENT STYLES (CONSISTENT WITH DISTRIBUTER) */
+.mpacs-result-outer-card {
+    background: #fff;
+    border-radius: 22px;
+    box-shadow: 0 2px 16px rgba(7,91,94,0.13);
+    margin: 22px 0 0 0;
+    padding: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    transition: box-shadow 0.2s;
+}
+.mpacs-result-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 22px 32px 12px 32px;
+    border-radius: 22px 22px 0 0;
+    background: #fff;
+    font-size: 1.13rem;
+    font-weight: 100;
+    color: #000;
+}
+.mpacs-result-row > div {
+    flex: 1;
+    text-align: center;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+.mpacs-result-value {
+    font-size: 1.1rem;
+    color: #333;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+}
+.mpacs-result-inner-card {
+    background: #C1DBB3;
+    border-radius: 18px;
+    margin: 22px 22px 22px 22px;
+    padding: 18px 24px 18px 24px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(7,91,94,0.10);
+    font-size: 1.08rem;
+    font-weight: 500;
+    color: #075B5E;
+}
+.mpacs-result-inner-card > div {
+    flex: 1;
+    text-align: center;
+}
+.mpacs-result-expire {
+    background: #fff;
+    color: #d9534f;
+    border-radius: 12px;
+    padding: 6px 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-left: 10px;
+    display: inline-block;
+}
+.mpacs-missing-doc {
+    background: #fff;
+    color: #d9534f;
+    border-radius: 12px;
+    padding: 6px 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-left: 10px;
+    display: inline-block;
+}
+.mpacs-no-result {
+    color: #fff;
+    text-align: center;
+    margin-top: 18px;
+    font-size: 1.1rem;
+}
+.mpacs-search-icon-btn {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%) rotate(-20deg);
+    color: #2C2C2C;
+    font-size: 1.2rem;
+    background: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 2;
+}
+.form-card.mpacs-active {
+    background: #075B5E !important;
+    color: #fff !important;
+    margin: 10px 20px 10px 20px !important;
+    border-radius: 18px;
+    min-height: 100%;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    padding: 32px 24px;
+    display: flex;
+    font-size: 1.25rem;
+    font-weight: 600;
+    flex-direction: column;
+}
+    /* MCC AGREEMENT STYLES (CONSISTENT WITH DISTRIBUTER) */
+.mcc-result-outer-card {
+    background: #fff;
+    border-radius: 22px;
+    box-shadow: 0 2px 16px rgba(7,91,94,0.13);
+    margin: 22px 0 0 0;
+    padding: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    transition: box-shadow 0.2s;
+}
+.mcc-result-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 22px 32px 12px 32px;
+    border-radius: 22px 22px 0 0;
+    background: #fff;
+    font-size: 1.13rem;
+    font-weight: 100;
+    color: #000;
+}
+.mcc-result-row > div {
+    flex: 1;
+    text-align: center;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+.mcc-result-value {
+    font-size: 1.1rem;
+    color: #333;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+}
+.mcc-result-inner-card {
+    background: #C1DBB3;
+    border-radius: 18px;
+    margin: 22px 22px 22px 22px;
+    padding: 18px 24px 18px 24px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(7,91,94,0.10);
+    font-size: 1.08rem;
+    font-weight: 500;
+    color: #075B5E;
+}
+.mcc-result-inner-card > div {
+    flex: 1;
+    text-align: center;
+}
+.mcc-result-expire {
+    background: #fff;
+    color: #d9534f;
+    border-radius: 12px;
+    padding: 6px 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-left: 10px;
+    display: inline-block;
+}
+.mcc-missing-doc {
+    background: #fff;
+    color: #d9534f;
+    border-radius: 12px;
+    padding: 6px 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-left: 10px;
+    display: inline-block;
+}
+.mcc-no-result {
+    color: #fff;
+    text-align: center;
+    margin-top: 18px;
+    font-size: 1.1rem;
+}
+.mcc-search-icon-btn {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%) rotate(-20deg);
+    color: #2C2C2C;
+    font-size: 1.2rem;
+    background: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 2;
+}
+.form-card.mcc-active {
+    background: #075B5E !important;
+    color: #fff !important;
+    margin: 10px 20px 10px 20px !important;
+    border-radius: 18px;
+    min-height: 100%;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    padding: 32px 24px;
+    display: flex;
+    font-size: 1.25rem;
+    font-weight: 600;
+    flex-direction: column;
+}
     /* MILK SALE AGREEMENT STYLES (CONSISTENT WITH DISTRIBUTER) */
 .milk-sale-result-outer-card {
     background: #fff;
@@ -837,27 +1273,27 @@
 <!-- End Profile Banner Card -->
 <div style="display: flex; justify-content: flex-start;">
    <aside class="aside-card">
-      <div class="aside-item" id="amc-agreement">AMC AGREEMENT</div>
-      <div class="aside-item" id="bmc-agreement">BMC AGREEMENT</div>
-      <div class="aside-item" id="input-service-agreement">INPUT SERVICES AGREEMENT</div>
-      <div class="aside-item" id="consultant-agreement">CONSULTANT AGREEMENT</div>
-      <div class="aside-item" id="cook-agreement">COOK AGREEMENT</div>
-      <div class="aside-item" id="distributer-agreement">DISTRIBUTER AGREEMENT</div>
-      <div class="aside-item">INWARD TRANSPORT AGREEMENT</div>
-      <div class="aside-item">OUTWARD TRANSPORT AGREEMENT</div>
-      <div class="aside-item" id="milk-sale-agreement">MILK SALE AGREEMENT</div>
-      <div class="aside-item">MCC AGREEMENT</div>
-      <div class="aside-item">MPACS AGREEMENT</div>
-      <div class="aside-item">MPP/SAHAYAK AGREEMENT</div>
-      <div class="aside-item">RTA AGREEMENT</div>
+      <div class="aside-item" id="amc-agreement" onclick="scrollToTop()">AMC AGREEMENT</div>
+      <div class="aside-item" id="bmc-agreement" onclick="scrollToTop()">BMC AGREEMENT</div>
+      <div class="aside-item" id="input-service-agreement" onclick="scrollToTop()">INPUT SERVICES AGREEMENT</div>
+      <div class="aside-item" id="consultant-agreement" onclick="scrollToTop()">CONSULTANT AGREEMENT</div>
+      <div class="aside-item" id="cook-agreement" onclick="scrollToTop()">COOK AGREEMENT</div>
+      <div class="aside-item" id="distributer-agreement" onclick="scrollToTop()">DISTRIBUTER AGREEMENT</div>
+      <div class="aside-item" onclick="scrollToTop()">INWARD TRANSPORT AGREEMENT</div>
+      <div class="aside-item" onclick="scrollToTop()">OUTWARD TRANSPORT AGREEMENT</div>
+      <div class="aside-item" id="milk-sale-agreement" onclick="scrollToTop()">MILK SALE AGREEMENT</div>
+      <div class="aside-item" id="mcc-agreement" onclick="scrollToTop()">MCC AGREEMENT</div>
+      <div class="aside-item" id="mpacs-agreement" onclick="scrollToTop()">MPACS AGREEMENT</div>
+      <div class="aside-item" onclick="scrollToTop()">MPP/SAHAYAK AGREEMENT</div>
+      <div class="aside-item" id="rta-agreement" onclick="scrollToTop()">RTA AGREEMENT</div>
       <div class="aside-item" id="rental-toggle" onclick="toggleDropdown(this)">
          RENTAL AGREEMENT
          <span class="dropdown-icon"><i class="fa-solid fa-chevron-right"></i></span>
       </div>
       <div class="aside-subitems" id="rental-subitems">
-         <div class="aside-subitem">GODOWN/STORE</div>
-         <div class="aside-subitem">OFFICE LEASE</div>
-         <div class="aside-subitem">GUEST HOUSE AGREEMENT</div>
+         <div class="aside-subitem" id="godown-agreement" onclick="scrollToTop()">GODOWN/STORE</div>
+         <div class="aside-subitem" onclick="scrollToTop()">OFFICE LEASE</div>
+         <div class="aside-subitem" onclick="scrollToTop()">GUEST HOUSE AGREEMENT</div>
       </div>
    </aside>
    <div class="form-card active" id="view-form" style="background: #075B5E; display: flex; align-items: center; justify-content: center; height: 450px; border-radius: 18px; margin: 10px 20px 10px 20px; flex: 1; flex-direction: column;">
@@ -984,6 +1420,67 @@
                 <div id="milk-sale-search-result-container"></div>
             </div>
         </div>
+
+        <!-- MCC AGREEMENT SEARCH CONTAINER -->
+        <div id="mcc-search-container" style="display: none; width: 100%;">
+            <div style="padding: 15px 20px 0 20px; margin-bottom: 10px; margin-top: 20px;">
+                <div style="position: relative; width: 100%;">
+                    <input type="text" id="mcc-search-input" placeholder="SEARCH BY LOCATION, CONTRACTOR"
+                        style="width: 100%; background: #FFEDDB; border: none; border-radius: 24px; padding: 12px 44px 12px 18px; font-size: 1rem; color: #000; outline: none; box-sizing: border-box; font-weight: 500;"
+                        onkeydown="if(event.key==='Enter'){document.getElementById('mcc-search-btn').click();}"
+                    />
+                    <button id="mcc-search-btn" class="mcc-search-icon-btn" tabindex="-1">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <div id="mcc-search-result-container"></div>
+            </div>
+        </div>
+        <!-- MPACS AGREEMENT SEARCH CONTAINER -->
+        <div id="mpacs-search-container" style="display: none; width: 100%;">
+            <div style="padding: 15px 20px 0 20px; margin-bottom: 10px; margin-top: 20px;">
+                <div style="position: relative; width: 100%;">
+                    <input type="text" id="mpacs-search-input" placeholder="SEARCH BY LOCATION, CONTRACTOR"
+                        style="width: 100%; background: #FFEDDB; border: none; border-radius: 24px; padding: 12px 44px 12px 18px; font-size: 1rem; color: #000; outline: none; box-sizing: border-box; font-weight: 500;"
+                        onkeydown="if(event.key==='Enter'){document.getElementById('mpacs-search-btn').click();}"
+                    />
+                    <button id="mpacs-search-btn" class="mpacs-search-icon-btn" tabindex="-1">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <div id="mpacs-search-result-container"></div>
+            </div>
+        </div>
+        <!-- RTA AGREEMENT SEARCH CONTAINER -->
+        <div id="rta-search-container" style="display: none; width: 100%;">
+            <div style="padding: 15px 20px 0 20px; margin-bottom: 10px; margin-top: 20px;">
+                <div style="position: relative; width: 100%;">
+                    <input type="text" id="rta-search-input" placeholder="SEARCH BY LOCATION, TRANSPORTER"
+                        style="width: 100%; background: #FFEDDB; border: none; border-radius: 24px; padding: 12px 44px 12px 18px; font-size: 1rem; color: #000; outline: none; box-sizing: border-box; font-weight: 500;"
+                        onkeydown="if(event.key==='Enter'){document.getElementById('rta-search-btn').click();}"
+                    />
+                    <button id="rta-search-btn" class="rta-search-icon-btn" tabindex="-1">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <div id="rta-search-result-container"></div>
+            </div>
+        </div>
+        <!-- GODOWN AGREEMENT SEARCH CONTAINER -->
+        <div id="godown-search-container" style="display: none; width: 100%;">
+            <div style="padding: 15px 20px 0 20px; margin-bottom: 10px; margin-top: 20px;">
+                <div style="position: relative; width: 100%;">
+                    <input type="text" id="godown-search-input" placeholder="SEARCH BY LOCATION, OWNER"
+                        style="width: 100%; background: #FFEDDB; border: none; border-radius: 24px; padding: 12px 44px 12px 18px; font-size: 1rem; color: #000; outline: none; box-sizing: border-box; font-weight: 500;"
+                        onkeydown="if(event.key==='Enter'){document.getElementById('godown-search-btn').click();}"
+                    />
+                    <button id="godown-search-btn" class="godown-search-icon-btn" tabindex="-1">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <div id="godown-search-result-container"></div>
+            </div>
+        </div>
    </div>
 </div>
 {% endblock %}
@@ -1032,7 +1529,35 @@ document.addEventListener('DOMContentLoaded', function() {
         resetCookSearchResults();
         resetDistributerSearchResults();
         resetMilkSaleSearchResults();
+        resetMccSearchResults();
+        resetMpacsSearchResults();
+        resetRtaSearchResults();
     }
+
+    // Reset Godown Search Results
+    function resetGodownSearchResults() {
+        document.getElementById('godown-search-input').value = '';
+        document.getElementById('godown-search-result-container').innerHTML = '';
+    }
+
+    // Reset RTA Search Results
+    function resetRtaSearchResults() {
+        document.getElementById('rta-search-input').value = '';
+        document.getElementById('rta-search-result-container').innerHTML = '';
+    }
+
+    //Reset MPACS Search Results
+    function resetMpacsSearchResults() {
+    document.getElementById('mpacs-search-input').value = '';
+    document.getElementById('mpacs-search-result-container').innerHTML = '';
+}
+
+
+    // Reset MCC Search Results
+    function resetMccSearchResults() {
+    document.getElementById('mcc-search-input').value = '';
+    document.getElementById('mcc-search-result-container').innerHTML = '';
+}
 
     // Reset Milk Sale Search Results
     function resetMilkSaleSearchResults() {
@@ -1085,6 +1610,11 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('cook-search-container').style.display = 'none';
         document.getElementById('distributer-search-container').style.display = 'none';
         document.getElementById('milk-sale-search-container').style.display = 'none';
+        document.getElementById('mcc-search-container').style.display = 'none';
+        document.getElementById('mpacs-search-container').style.display = 'none';
+        document.getElementById('rta-search-container').style.display = 'none';
+        document.getElementById('godown-search-container').style.display = 'none';
+
     }
 
     // Update the view form based on selected agreement type
@@ -1100,7 +1630,11 @@ document.addEventListener('DOMContentLoaded', function() {
             'consultant-active',
             'cook-active',
             'distributer-active',
-            'milk-sale-active'
+            'milk-sale-active',
+            'mcc-active',
+            'mpacs-active',
+            'rta-active',
+
         );
         
         // Hide all search containers
@@ -1147,8 +1681,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateViewForm('distributer');
             } else if (viewForm.classList.contains('milk-sale-active')) {
                 updateViewForm('milk-sale');
+            } else if (viewForm.classList.contains('mcc-active')) {
+                updateViewForm('mcc')
+            } else if (viewForm.classList.contains('mpacs-active')) {
+                updateViewForm('mpacs')
             }
         });
+    });
+    // Godown agreement click handler
+    document.getElementById('godown-agreement').addEventListener('click', function() {
+    updateViewForm('godown');
+    });
+    // Add rta agreement click handler
+    document.getElementById('rta-agreement').addEventListener('click', function() {
+    updateViewForm('rta');
+    });
+    // Add mpacs agreement click handler
+    document.getElementById('mpacs-agreement').addEventListener('click', function() {
+        updateViewForm('mpacs');
+    });
+    // Add mcc agreement click handler 
+    document.getElementById('mcc-agreement').addEventListener('click', function() {
+    updateViewForm('mcc');
     });
     // Add milk sale agreement click handler
     document.getElementById('milk-sale-agreement').addEventListener('click', function() {
@@ -1180,6 +1734,546 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('cook-agreement').addEventListener('click', function() {
         updateViewForm('cook');
     });
+
+// Godown search button handler
+document.getElementById('godown-search-btn').addEventListener('click', function() {
+    const input = document.getElementById('godown-search-input');
+    const query = input.value.trim();
+    const status = selectedStatus ? selectedStatus : '';
+    const resultDiv = document.getElementById('godown-search-result-container');
+    resultDiv.innerHTML = '';
+    
+    if (query.length === 0) {
+        resultDiv.innerHTML = '<div class="godown-no-result">Please enter a location or owner.</div>';
+        return;
+    }
+
+    // Split query by comma for location and owner
+    let location = '';
+    let owner = '';
+    const parts = query.split(',');
+    if (parts.length > 0) location = parts[0].trim();
+    if (parts.length > 1) owner = parts.slice(1).join(',').trim();
+
+    const params = new URLSearchParams();
+    if (location) params.append('location', location);
+    if (owner) params.append('owner', owner);
+    if (status) params.append('status', status);
+
+    fetch(`/godown/search/viewer/?${params.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.results && data.results.length > 0) {
+                let html = '';
+                data.results.forEach(item => {
+                    const pdfContainerId = `pdf-container-godown-${item.id}`;
+                    
+                    const missingDocMessage = (item.document_status && item.document_status.toUpperCase() === 'INCOMPLETE') 
+                        ? `<div style="padding:10px 0;width:100%;text-align:left;">
+                              <span>MISSING DOCUMENT:<span class="godown-missing-doc">${item.pending_document || 'Not specified'}</span></span>
+                           </div>`
+                        : '';
+                    
+                    html += `
+<div class="godown-result-outer-card" style="background:#fff;">
+    <div class="data-field-container">
+        <div class="data-field">LOCATION</div>
+        <div class="data-field">CONTRACTOR</div>
+        <div class="data-field">AGREEMENT DATE</div>
+        <div class="data-field">DOCUMENT STATUS</div>
+    </div>
+    
+    <div class="godown-result-row" style="background:#fff; border-radius:0; padding:18px 0 0 0; font-size:1.1rem">
+        <div class="godown-result-value" style="flex:1;text-align:center;">${item.location || '-'}</div>
+        <div class="godown-result-value" style="flex:1;text-align:center;">${item.contractor || '-'}</div>
+        <div class="godown-result-value" style="flex:1;text-align:center;">${formatDateDMY(item.agreement_date) || '-'}</div>
+        <div class="godown-result-value" style="flex:1;text-align:center;">${item.document_status || '-'}</div>
+    </div>
+    
+    <div class="godown-result-inner-card" style="display:flex;flex-direction:row;align-items:center;gap:2px;">
+        <div style="flex:2;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;height:220px;padding-left:10px;">
+            ${missingDocMessage}
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Agreement Start Date: ${item.start_date}</span>
+            </div>
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Agreement End Date: ${formatDateDMY(item.end_date)}</span>
+            </div>
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Expire in: <span class="godown-result-expire">${item.expire_months !== undefined ? item.expire_months : '-'} month${item.expire_months == 1 ? '' : 's'} from today</span></span>
+            </div>
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Scanned & Inserted By: <span class="godown-result-expire" style="color:#d9534f;">${item.created_by}</span></span>
+            </div>
+        </div>
+        
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+            <div class="bmc-preview-card" style="width:180px;height:220px;">
+                ${item.document_url ? `
+                <div id="${pdfContainerId}" class="pdf-viewer-container" style="width:100%;height:100%;">
+                    <iframe class="bmc-preview-pdf" src="${item.document_url}#toolbar=0&navpanes=0&scrollbar=0" style="width:100%;height:100%;border:none;"></iframe>
+                </div>
+                ` : `
+                <div class="bmc-preview-placeholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">NO PDF</div>
+                `}
+            </div>
+            ${item.document_url ? `
+            <a href="${item.document_url}" target="_blank" class="pdf-view-button">VIEW IN FULL PAGE</a>
+            ` : ''}
+        </div>
+    </div>
+</div>
+                    `;
+                });
+                resultDiv.innerHTML = html;
+
+                document.querySelectorAll('.bmc-preview-pdf').forEach(iframe => {
+                    iframe.onload = function() {
+                        try {
+                            if (iframe.contentDocument || iframe.contentWindow.document) {
+                                // PDF loaded successfully
+                            }
+                        } catch (e) {
+                            const container = iframe.parentElement;
+                            container.innerHTML = `
+                                <div style="text-align: center; padding: 20px; width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                                    <p>PDF cannot be previewed</p>
+                                    <a href="${iframe.src}" target="_blank" class="pdf-view-button">
+                                        VIEW PDF IN NEW TAB
+                                    </a>
+                                </div>
+                            `;
+                        }
+                    };
+                });
+            } else {
+                resultDiv.innerHTML = '<div class="godown-no-result">No godown agreements found.</div>';
+            }
+        })
+        .catch(() => {
+            resultDiv.innerHTML = '<div class="godown-no-result">Error fetching godown agreements.</div>';
+        });
+});
+
+// Add RTA search button handler
+document.getElementById('rta-search-btn').addEventListener('click', function() {
+    const input = document.getElementById('rta-search-input');
+    const query = input.value.trim();
+    const status = selectedStatus ? selectedStatus : '';
+    const resultDiv = document.getElementById('rta-search-result-container');
+    resultDiv.innerHTML = '';
+    
+    if (query.length === 0) {
+        resultDiv.innerHTML = '<div class="rta-no-result">Please enter a location or transporter.</div>';
+        return;
+    }
+
+    // Split query by comma for location and transporter
+    let location = '';
+    let transporter = '';
+    const parts = query.split(',');
+    if (parts.length > 0) location = parts[0].trim();
+    if (parts.length > 1) transporter = parts.slice(1).join(',').trim();
+
+    // Prepare query parameters
+    const params = new URLSearchParams();
+    if (location) params.append('location', location);
+    if (transporter) params.append('transporter', transporter);
+    if (status) params.append('status', status);
+
+    // Fetch rta agreement data from server
+    fetch(`/rta/search/viewer/?${params.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.results && data.results.length > 0) {
+                let html = '';
+                // Process each result and create HTML cards
+                data.results.forEach(item => {
+                    // Create a unique ID for each PDF container
+                    const pdfContainerId = `pdf-container-rta-${item.id}`;
+                    
+                    // Check if status is incomplete to show missing document message
+                    const missingDocMessage = (item.document_status && item.document_status.toUpperCase() === 'INCOMPLETE') 
+                        ? `<div style="padding:10px 0;width:100%;text-align:left;">
+                              <span>MISSING DOCUMENT:<span class="rta-missing-doc">${item.pending_document || 'Not specified'}</span></span>
+                           </div>`
+                        : '';
+                    
+                    // Build the HTML for each rta agreement card
+                    html += `
+<div class="rta-result-outer-card" style="background:#fff;">
+    <!-- Header row with field labels -->
+    <div class="data-field-container">
+        <div class="data-field">LOCATION</div>
+        <div class="data-field">CONTRACTOR</div>
+        <div class="data-field">AGREEMENT DATE</div>
+        <div class="data-field">DOCUMENT STATUS</div>
+    </div>
+    
+    <!-- Row with actual values -->
+    <div class="rta-result-row" style="background:#fff; border-radius:0; padding:18px 0 0 0; font-size:1.1rem">
+        <div class="rta-result-value" style="flex:1;text-align:center;">${item.location || '-'}</div>
+        <div class="rta-result-value" style="flex:1;text-align:center;">${item.contractor || '-'}</div>
+        <div class="rta-result-value" style="flex:1;text-align:center;">${formatDateDMY(item.agreement_date) || '-'}</div>
+        <div class="rta-result-value" style="flex:1;text-align:center;">${item.document_status || '-'}</div>
+    </div>
+    
+    <!-- Detailed information section -->
+    <div class="rta-result-inner-card" style="display:flex;flex-direction:row;align-items:center;gap:2px;">
+        <!-- Left side with agreement details -->
+        <div style="flex:2;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;height:220px;padding-left:10px;">
+            ${missingDocMessage}
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Agreement Start Date: ${item.start_date}</span>
+            </div>
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Agreement End Date: ${formatDateDMY(item.end_date)}</span>
+            </div>
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Expire in: <span class="rta-result-expire">${item.expire_months !== undefined ? item.expire_months : '-'} month${item.expire_months == 1 ? '' : 's'} from today</span></span>
+            </div>
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Scanned & Inserted By: <span class="rta-result-expire" style="color:#d9534f;">${item.created_by}</span></span>
+            </div>
+        </div>
+        
+        <!-- Right side with PDF preview -->
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+            <div class="bmc-preview-card" style="width:180px;height:220px;">
+                ${item.document_url ? `
+                <!-- PDF preview container -->
+                <div id="${pdfContainerId}" class="pdf-viewer-container" style="width:100%;height:100%;">
+                    <iframe class="bmc-preview-pdf" src="${item.document_url}#toolbar=0&navpanes=0&scrollbar=0" style="width:100%;height:100%;border:none;"></iframe>
+                </div>
+                ` : `
+                <!-- Placeholder if no PDF available -->
+                <div class="bmc-preview-placeholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">NO PDF</div>
+                `}
+            </div>
+            ${item.document_url ? `
+            <!-- Link to view full PDF -->
+            <a href="${item.document_url}" target="_blank" class="pdf-view-button">VIEW IN FULL PAGE</a>
+            ` : ''}
+        </div>
+    </div>
+</div>
+                    `;
+                });
+                // Insert all the generated HTML into the results container
+                resultDiv.innerHTML = html;
+
+                // Add fallback for PDFs that can't be embedded
+                document.querySelectorAll('.bmc-preview-pdf').forEach(iframe => {
+                    iframe.onload = function() {
+                        try {
+                            // Check if we can access the iframe content
+                            if (iframe.contentDocument || iframe.contentWindow.document) {
+                                // PDF loaded successfully
+                            }
+                        } catch (e) {
+                            // If we get a security error, show a link instead
+                            const container = iframe.parentElement;
+                            container.innerHTML = `
+                                <div style="text-align: center; padding: 20px; width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                                    <p>PDF cannot be previewed</p>
+                                    <a href="${iframe.src}" target="_blank" class="pdf-view-button">
+                                        VIEW PDF IN NEW TAB
+                                    </a>
+                                </div>
+                            `;
+                        }
+                    };
+                });
+            } else {
+                // Show message if no results found
+                resultDiv.innerHTML = '<div class="rta-no-result">No RTA agreements found.</div>';
+            }
+        })
+        .catch(() => {
+            // Show error message if fetch fails
+            resultDiv.innerHTML = '<div class="rta-no-result">Error fetching RTA agreements.</div>';
+        });
+});
+
+// Add mpacs search button handler
+document.getElementById('mpacs-search-btn').addEventListener('click', function() {
+    const input = document.getElementById('mpacs-search-input');
+    const query = input.value.trim();
+    const status = selectedStatus ? selectedStatus : '';
+    const resultDiv = document.getElementById('mpacs-search-result-container');
+    resultDiv.innerHTML = '';
+    
+    if (query.length === 0) {
+        resultDiv.innerHTML = '<div class="mpacs-no-result">Please enter a location or contractor.</div>';
+        return;
+    }
+
+    // Split query by comma for location and contractor
+    let location = '';
+    let contractor = '';
+    const parts = query.split(',');
+    if (parts.length > 0) location = parts[0].trim();
+    if (parts.length > 1) contractor = parts.slice(1).join(',').trim();
+
+    // Prepare query parameters
+    const params = new URLSearchParams();
+    if (location) params.append('location', location);
+    if (contractor) params.append('contractor', contractor);
+    if (status) params.append('status', status);
+
+    // Fetch mpacs agreement data from server
+    fetch(`/mpacs/search/viewer/?${params.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.results && data.results.length > 0) {
+                let html = '';
+                // Process each result and create HTML cards
+                data.results.forEach(item => {
+                    // Create a unique ID for each PDF container
+                    const pdfContainerId = `pdf-container-mpacs-${item.id}`;
+                    
+                    // Check if status is incomplete to show missing document message
+                    const missingDocMessage = (item.document_status && item.document_status.toUpperCase() === 'INCOMPLETE') 
+                        ? `<div style="padding:10px 0;width:100%;text-align:left;">
+                              <span>MISSING DOCUMENT:<span class="mpacs-missing-doc">${item.pending_document || 'Not specified'}</span></span>
+                           </div>`
+                        : '';
+                    
+                    // Build the HTML for each mpacs agreement card
+                    html += `
+<div class="mpacs-result-outer-card" style="background:#fff;">
+    <!-- Header row with field labels -->
+    <div class="data-field-container">
+        <div class="data-field">LOCATION</div>
+        <div class="data-field">CONTRACTOR</div>
+        <div class="data-field">AGREEMENT DATE</div>
+        <div class="data-field">DOCUMENT STATUS</div>
+    </div>
+    
+    <!-- Row with actual values -->
+    <div class="mpacs-result-row" style="background:#fff; border-radius:0; padding:18px 0 0 0; font-size:1.1rem">
+        <div class="mpacs-result-value" style="flex:1;text-align:center;">${item.location || '-'}</div>
+        <div class="mpacs-result-value" style="flex:1;text-align:center;">${item.contractor || '-'}</div>
+        <div class="mpacs-result-value" style="flex:1;text-align:center;">${formatDateDMY(item.agreement_date) || '-'}</div>
+        <div class="mpacs-result-value" style="flex:1;text-align:center;">${item.document_status || '-'}</div>
+    </div>
+    
+    <!-- Detailed information section -->
+    <div class="mpacs-result-inner-card" style="display:flex;flex-direction:row;align-items:center;gap:2px;">
+        <!-- Left side with agreement details -->
+        <div style="flex:2;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;height:220px;padding-left:10px;">
+            ${missingDocMessage}
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Agreement Start Date: ${item.start_date}</span>
+            </div>
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Agreement End Date: ${item.end_date}</span>
+            </div>
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Expire in: <span class="mpacs-result-expire">${item.expire_months !== undefined ? item.expire_months : '-'} month${item.expire_months == 1 ? '' : 's'} from today</span></span>
+            </div>
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Scanned & Inserted By: <span class="mpacs-result-expire" style="color:#d9534f;">${item.created_by}</span></span>
+            </div>
+        </div>
+        
+        <!-- Right side with PDF preview -->
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+            <div class="bmc-preview-card" style="width:180px;height:220px;">
+                ${item.document_url ? `
+                <!-- PDF preview container -->
+                <div id="${pdfContainerId}" class="pdf-viewer-container" style="width:100%;height:100%;">
+                    <iframe class="bmc-preview-pdf" src="${item.document_url}#toolbar=0&navpanes=0&scrollbar=0" style="width:100%;height:100%;border:none;"></iframe>
+                </div>
+                ` : `
+                <!-- Placeholder if no PDF available -->
+                <div class="bmc-preview-placeholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">NO PDF</div>
+                `}
+            </div>
+            ${item.document_url ? `
+            <!-- Link to view full PDF -->
+            <a href="${item.document_url}" target="_blank" class="pdf-view-button">VIEW IN FULL PAGE</a>
+            ` : ''}
+        </div>
+    </div>
+</div>
+                    `;
+                });
+                // Insert all the generated HTML into the results container
+                resultDiv.innerHTML = html;
+
+                // Add fallback for PDFs that can't be embedded
+                document.querySelectorAll('.bmc-preview-pdf').forEach(iframe => {
+                    iframe.onload = function() {
+                        try {
+                            // Check if we can access the iframe content
+                            if (iframe.contentDocument || iframe.contentWindow.document) {
+                                // PDF loaded successfully
+                            }
+                        } catch (e) {
+                            // If we get a security error, show a link instead
+                            const container = iframe.parentElement;
+                            container.innerHTML = `
+                                <div style="text-align: center; padding: 20px; width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                                    <p>PDF cannot be previewed</p>
+                                    <a href="${iframe.src}" target="_blank" class="pdf-view-button">
+                                        VIEW PDF IN NEW TAB
+                                    </a>
+                                </div>
+                            `;
+                        }
+                    };
+                });
+            } else {
+                // Show message if no results found
+                resultDiv.innerHTML = '<div class="mpacs-no-result">No MPACS agreements found.</div>';
+            }
+        })
+        .catch(() => {
+            // Show error message if fetch fails
+            resultDiv.innerHTML = '<div class="mpacs-no-result">Error fetching MPACS agreements.</div>';
+        });
+});
+
+// Add mcc search button handler
+document.getElementById('mcc-search-btn').addEventListener('click', function() {
+    const input = document.getElementById('mcc-search-input');
+    const query = input.value.trim();
+    const status = selectedStatus ? selectedStatus : '';
+    const resultDiv = document.getElementById('mcc-search-result-container');
+    resultDiv.innerHTML = '';
+    
+    if (query.length === 0) {
+        resultDiv.innerHTML = '<div class="mcc-no-result">Please enter a location or contractor.</div>';
+        return;
+    }
+
+    // Split query by comma for location and contractor
+    let location = '';
+    let contractor = '';
+    const parts = query.split(',');
+    if (parts.length > 0) location = parts[0].trim();
+    if (parts.length > 1) contractor = parts.slice(1).join(',').trim();
+
+    // Prepare query parameters
+    const params = new URLSearchParams();
+    if (location) params.append('location', location);
+    if (contractor) params.append('contractor', contractor);
+    if (status) params.append('status', status);
+
+    // Fetch mcc agreement data from server
+    fetch(`/mcc/search/viewer/?${params.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.results && data.results.length > 0) {
+                let html = '';
+                // Process each result and create HTML cards
+                data.results.forEach(item => {
+                    // Create a unique ID for each PDF container
+                    const pdfContainerId = `pdf-container-mcc-${item.id}`;
+                    
+                    // Check if status is incomplete to show missing document message
+                    const missingDocMessage = (item.document_status && item.document_status.toUpperCase() === 'INCOMPLETE') 
+                        ? `<div style="padding:10px 0;width:100%;text-align:left;">
+                              <span>MISSING DOCUMENT:<span class="mcc-missing-doc">${item.pending_document || 'Not specified'}</span></span>
+                           </div>`
+                        : '';
+                    
+                    // Build the HTML for each mcc agreement card
+                    html += `
+<div class="mcc-result-outer-card" style="background:#fff;">
+    <!-- Header row with field labels -->
+    <div class="data-field-container">
+        <div class="data-field">LOCATION</div>
+        <div class="data-field">CONTRACTOR</div>
+        <div class="data-field">AGREEMENT DATE</div>
+        <div class="data-field">DOCUMENT STATUS</div>
+    </div>
+    
+    <!-- Row with actual values -->
+    <div class="mcc-result-row" style="background:#fff; border-radius:0; padding:18px 0 0 0; font-size:1.1rem">
+        <div class="mcc-result-value" style="flex:1;text-align:center;">${item.location || '-'}</div>
+        <div class="mcc-result-value" style="flex:1;text-align:center;">${item.contractor || '-'}</div>
+        <div class="mcc-result-value" style="flex:1;text-align:center;">${formatDateDMY(item.agreement_date) || '-'}</div>
+        <div class="mcc-result-value" style="flex:1;text-align:center;">${item.document_status || '-'}</div>
+    </div>
+    
+    <!-- Detailed information section -->
+    <div class="mcc-result-inner-card" style="display:flex;flex-direction:row;align-items:center;gap:2px;">
+        <!-- Left side with agreement details -->
+        <div style="flex:2;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;height:220px;padding-left:10px;">
+            ${missingDocMessage}
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Agreement Start Date: ${item.start_date}</span>
+            </div>
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Agreement End Date: ${formatDateDMY(item.end_date)}</span>
+            </div>
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Expire in: <span class="mcc-result-expire">${item.expire_months !== undefined ? item.expire_months : '-'} month${item.expire_months == 1 ? '' : 's'} from today</span></span>
+            </div>
+            <div style="padding:10px 0;width:100%;text-align:left;">
+                <span>Scanned & Inserted By: <span class="mcc-result-expire" style="color:#d9534f;">${item.created_by}</span></span>
+            </div>
+        </div>
+        
+        <!-- Right side with PDF preview -->
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+            <div class="bmc-preview-card" style="width:180px;height:220px;">
+                ${item.document_url ? `
+                <!-- PDF preview container -->
+                <div id="${pdfContainerId}" class="pdf-viewer-container" style="width:100%;height:100%;">
+                    <iframe class="bmc-preview-pdf" src="${item.document_url}#toolbar=0&navpanes=0&scrollbar=0" style="width:100%;height:100%;border:none;"></iframe>
+                </div>
+                ` : `
+                <!-- Placeholder if no PDF available -->
+                <div class="bmc-preview-placeholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">NO PDF</div>
+                `}
+            </div>
+            ${item.document_url ? `
+            <!-- Link to view full PDF -->
+            <a href="${item.document_url}" target="_blank" class="pdf-view-button">VIEW IN FULL PAGE</a>
+            ` : ''}
+        </div>
+    </div>
+</div>
+                    `;
+                });
+                // Insert all the generated HTML into the results container
+                resultDiv.innerHTML = html;
+
+                // Add fallback for PDFs that can't be embedded
+                document.querySelectorAll('.bmc-preview-pdf').forEach(iframe => {
+                    iframe.onload = function() {
+                        try {
+                            // Check if we can access the iframe content
+                            if (iframe.contentDocument || iframe.contentWindow.document) {
+                                // PDF loaded successfully
+                            }
+                        } catch (e) {
+                            // If we get a security error, show a link instead
+                            const container = iframe.parentElement;
+                            container.innerHTML = `
+                                <div style="text-align: center; padding: 20px; width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                                    <p>PDF cannot be previewed</p>
+                                    <a href="${iframe.src}" target="_blank" class="pdf-view-button">
+                                        VIEW PDF IN NEW TAB
+                                    </a>
+                                </div>
+                            `;
+                        }
+                    };
+                });
+            } else {
+                // Show message if no results found
+                resultDiv.innerHTML = '<div class="mcc-no-result">No MCC agreements found.</div>';
+            }
+        })
+        .catch(() => {
+            // Show error message if fetch fails
+            resultDiv.innerHTML = '<div class="mcc-no-result">Error fetching MCC agreements.</div>';
+        });
+});
 
     // Add milk sale search button handler
 document.getElementById('milk-sale-search-btn').addEventListener('click', function() {
@@ -2061,5 +3155,11 @@ document.getElementById('milk-sale-search-btn').addEventListener('click', functi
             });
     });
 });
+function scrollToTop() {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'  // Makes the scroll smooth instead of instant
+        });
+    }
 </script>
 {% endblock %}

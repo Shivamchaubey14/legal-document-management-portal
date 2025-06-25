@@ -565,6 +565,21 @@ input[placeholder]::placeholder {
     0% { transform: translateY(-30px); opacity: 0; }
     100% { transform: translateY(0); opacity: 1; }
 }
+.tooltip {
+        position: absolute; 
+        bottom: -35px; 
+        left: 50%; 
+        transform: translateX(-50%); 
+        background: #333; 
+        color: white; 
+        padding: 5px 10px; 
+        border-radius: 4px; 
+        font-size: 12px; 
+        opacity: 0; 
+        transition: opacity 0.3s; 
+        pointer-events: none; 
+        white-space: nowrap;
+    }
 </style>
 {% endblock %}
 
@@ -579,13 +594,34 @@ input[placeholder]::placeholder {
         {% endif %}
     </div>
     <!-- User Info -->
-    <div style="display: flex; flex-direction: column; justify-content: center;">
+    <div style="display: flex; flex-direction: column; justify-content: center; position: relative; padding-right: 20px;">
         <div style="font-size: 1.3rem; font-weight: 600; color: #096B68;">
             {{ user.first_name }} {{ user.last_name }}
         </div>
         <div style="font-size: 1rem; color: #555;">
             Employee ID: {{ user.employee_code }}
         </div>
+    </div>
+    <!-- Refresh Button -->
+    <div id="refreshIcon" style="
+        cursor: pointer; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        width: 40px; 
+        height: 40px; 
+        background-color: #708A58; 
+        border-radius: 50%; 
+        margin-left: 20px; 
+        position: relative; 
+        transition: transform 0.3s;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    ">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="white" viewBox="0 0 16 16" style="transition: transform 0.3s;">
+            <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+            <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+        </svg>
+        <span class="tooltip">Hard Refresh</span>
     </div>
     <!-- INSERT and EDIT text -->
     <div style="position: absolute; right: 40px; top: 50%; transform: translateY(-50%); display: flex; gap: 32px;">
@@ -594,32 +630,33 @@ input[placeholder]::placeholder {
         <span id="viewBtn" style="font-size: 1.1rem; font-weight: 600; color: #096B68; letter-spacing: 2px; cursor: pointer;">VIEW</span>
     </div>
 </div>
+
+
 <div style="display: flex; justify-content: flex-start; align-items: flex-start;">
     <aside class="aside-card">
-        <div class="aside-item" onclick="showForm('amc')">AMC AGREEMENT</div>
-        <div class="aside-item" onclick="showForm('bmc')">BMC AGREEMENT</div>
-        <div class="aside-item" onclick="showForm('input_services')">INPUT SERVICES AGREEMENT</div>
-        <div class="aside-item" onclick="showForm('consultant')">CONSULTANT AGREEMENT</div>
-        <div class="aside-item" onclick="showForm('cook')">COOK AGREEMENT</div>
-        <div class="aside-item" onclick="showForm('distributer')">DISTRIBUTER AGREEMENT</div>
-        <div class="aside-item" onclick="showForm('inward')">INWARD TRANSPORT AGREEMENT</div>
-        <div class="aside-item" onclick="showForm('outward')">OUTWARD TRANSPORT AGREEMENT</div>
-        <div class="aside-item" onclick="showForm('milk_sale')">MILK SALE AGREEMENT</div>
-        <div class="aside-item" onclick="showForm('mcc')">MCC AGREEMENT</div>
-        <div class="aside-item" onclick="showForm('mpacs')">MPACS AGREEMENT</div>
-        <div class="aside-item" onclick="showForm('mpp_sahayak')">MPP/SAHAYAK AGREEMENT</div>
-        <div class="aside-item" onclick="showForm('rta')">RTA AGREEMENT</div>
-        <div class="aside-item" id="rental-toggle" onclick="toggleDropdown(this)">
+        <div class="aside-item" onclick="showForm('amc'); scrollToTop()">AMC AGREEMENT</div>
+        <div class="aside-item" onclick="showForm('bmc'); scrollToTop()">BMC AGREEMENT</div>
+        <div class="aside-item" onclick="showForm('input_services'); scrollToTop()">INPUT SERVICES AGREEMENT</div>
+        <div class="aside-item" onclick="showForm('consultant'); scrollToTop()">CONSULTANT AGREEMENT</div>
+        <div class="aside-item" onclick="showForm('cook'); scrollToTop()">COOK AGREEMENT</div>
+        <div class="aside-item" onclick="showForm('distributer'); scrollToTop()">DISTRIBUTER AGREEMENT</div>
+        <div class="aside-item" onclick="showForm('inward'); scrollToTop()">INWARD TRANSPORT AGREEMENT</div>
+        <div class="aside-item" onclick="showForm('outward'); scrollToTop()">OUTWARD TRANSPORT AGREEMENT</div>
+        <div class="aside-item" onclick="showForm('milk_sale'); scrollToTop()">MILK SALE AGREEMENT</div>
+        <div class="aside-item" onclick="showForm('mcc'); scrollToTop()">MCC AGREEMENT</div>
+        <div class="aside-item" onclick="showForm('mpacs'); scrollToTop()">MPACS AGREEMENT</div>
+        <div class="aside-item" onclick="showForm('mpp_sahayak'); scrollToTop()">MPP/SAHAYAK AGREEMENT</div>
+        <div class="aside-item" onclick="showForm('rta'); scrollToTop()">RTA AGREEMENT</div>
+        <div class="aside-item" id="rental-toggle" onclick="toggleDropdown(this);">
             RENTAL AGREEMENT
             <span class="dropdown-icon"><i class="fa-solid fa-chevron-right"></i></span>
         </div>
         
         <div class="aside-subitems" id="rental-subitems">
-            <div class="aside-subitem" onclick="showForm('godown')">GODOWN/STORE</div>
-            <div class="aside-subitem" onclick="showForm('office_lease')">OFFICE LEASE</div>
-            <div class="aside-subitem" onclick="showForm('guest_house')">GUEST HOUSE AGREEMENT</div>
+            <div class="aside-subitem" onclick="showForm('godown'); scrollToTop()">GODOWN/STORE</div>
+            <div class="aside-subitem" onclick="showForm('office_lease'); scrollToTop()">OFFICE LEASE</div>
+            <div class="aside-subitem" onclick="showForm('guest_house'); scrollToTop()">GUEST HOUSE AGREEMENT</div>
         </div>
-        
     </aside>
      <!-- Selection prompt that shows when no form is selected -->
     <div class="selection-prompt" id="selectionPrompt" style="display: none;">
@@ -2076,7 +2113,8 @@ input[placeholder]::placeholder {
   <div style="font-size:1.3rem; color:#096B68; font-weight:600;">SUBMIT SUCCESSFULLY</div>
 </div>
         <div class="form-title">MCC Agreement Entry Form</div>
-        <form>
+        <form method="post" enctype="multipart/form" action="{% url 'mcc-create'%}">
+        {%csrf_token%}
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Zone</label>
@@ -2155,7 +2193,10 @@ input[placeholder]::placeholder {
             <!-- Place after the MCC form -->
 <div class="form-card" id="mcc-edit-card" style="display:none;">
     <div class="form-success-message" style="display:none;">
-        <!-- ...success SVG... -->
+        <svg class="tick-animate" width="60" height="60" viewBox="0 0 60 60" style="margin-bottom:18px; display:block;">
+            <circle cx="30" cy="30" r="28" fill="none" stroke="#27ae60" stroke-width="4" opacity="0.15"/>
+            <polyline points="18,32 27,41 43,23" fill="none" stroke="#27ae60" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
         <div style="font-size:1.3rem; color:#096B68; font-weight:600;">SUBMIT SUCCESSFULLY</div>
     </div>
     <div style="padding-top:15px; padding-bottom:32px;">
@@ -2163,6 +2204,7 @@ input[placeholder]::placeholder {
         <div id="mcc-edit-title" style="font-size:1.1rem; font-weight:600; color:#ffffff; text-align:center;">
             EDITING: MCC AGREEMENT
         </div>
+        
         <!-- Stats Row -->
         <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 18px;">
             <div style="display: flex; align-items: center; gap: 7px; padding-left: 10px;">
@@ -2190,15 +2232,17 @@ input[placeholder]::placeholder {
                 </span>
             </div>
         </div>
+        
         <!-- Search Box -->
         <div style="padding: 15px 20px 0 20px; margin-bottom: 10px; margin-top: 20px;">
             <div style="position: relative; width: 100%;">
                 <input
+                    id="mcc-search-input"
                     type="text"
-                    placeholder="SEARCH BY LOCATION"
+                    placeholder="SEARCH BY LOCATION, CONTRACTOR"
                     style="width: 100%; background: #FFEDDB; border: none; border-radius: 24px; padding: 12px 44px 12px 18px; font-size: 1rem; color: #000; outline: none; box-sizing: border-box; font-weight: 500;"
                 />
-                <span style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%) rotate(-20deg); color: #2C2C2C; font-size: 1.2rem; pointer-events: none;">
+                <span id="mcc-search-icon" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%) rotate(-20deg); color: #2C2C2C; font-size: 1.2rem; pointer-events: none;">
                     <i class="fas fa-search"></i>
                 </span>
             </div>
@@ -2217,7 +2261,8 @@ input[placeholder]::placeholder {
   <div style="font-size:1.3rem; color:#096B68; font-weight:600;">SUBMIT SUCCESSFULLY</div>
 </div>
         <div class="form-title">MPACS Agreement Entry Form</div>
-        <form>
+        <form method="post" enctype="multipart/form" action="{% url 'mpacs-create'%}">
+            {% csrf_token %}
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Zone</label>
@@ -2294,9 +2339,12 @@ input[placeholder]::placeholder {
         </form>
     </div>
     <!-- Place after the MPACS form -->
-<div class="form-card" id="mpacs-edit-card" style="display:none;">
+    <div class="form-card" id="mpacs-edit-card" style="display:none;">
     <div class="form-success-message" style="display:none;">
-        <!-- ...success SVG... -->
+        <svg class="tick-animate" width="60" height="60" viewBox="0 0 60 60" style="margin-bottom:18px; display:block;">
+            <circle cx="30" cy="30" r="28" fill="none" stroke="#27ae60" stroke-width="4" opacity="0.15"/>
+            <polyline points="18,32 27,41 43,23" fill="none" stroke="#27ae60" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
         <div style="font-size:1.3rem; color:#096B68; font-weight:600;">SUBMIT SUCCESSFULLY</div>
     </div>
     <div style="padding-top:15px; padding-bottom:32px;">
@@ -2304,6 +2352,7 @@ input[placeholder]::placeholder {
         <div id="mpacs-edit-title" style="font-size:1.1rem; font-weight:600; color:#ffffff; text-align:center;">
             EDITING: MPACS AGREEMENT
         </div>
+        
         <!-- Stats Row -->
         <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 18px;">
             <div style="display: flex; align-items: center; gap: 7px; padding-left: 10px;">
@@ -2331,15 +2380,17 @@ input[placeholder]::placeholder {
                 </span>
             </div>
         </div>
+        
         <!-- Search Box -->
         <div style="padding: 15px 20px 0 20px; margin-bottom: 10px; margin-top: 20px;">
             <div style="position: relative; width: 100%;">
                 <input
+                    id="mpacs-search-input"
                     type="text"
-                    placeholder="SEARCH BY LOCATION"
+                    placeholder="SEARCH BY LOCATION, CONTRACTOR"
                     style="width: 100%; background: #FFEDDB; border: none; border-radius: 24px; padding: 12px 44px 12px 18px; font-size: 1rem; color: #000; outline: none; box-sizing: border-box; font-weight: 500;"
                 />
-                <span style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%) rotate(-20deg); color: #2C2C2C; font-size: 1.2rem; pointer-events: none;">
+                <span id="mpacs-search-icon" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%) rotate(-20deg); color: #2C2C2C; font-size: 1.2rem; pointer-events: none;">
                     <i class="fas fa-search"></i>
                 </span>
             </div>
@@ -2349,7 +2400,7 @@ input[placeholder]::placeholder {
 </div>
    
 
-    <!-- Rental GODOWN -->
+    <!-- Rental GODOWN AGREEMENT ENTRY FORM -->
     <div class="form-card" id="godown-form">
         <!-- Place this inside each .form-card, after the <form> -->
 <div class="form-success-message" style="display:none;">
@@ -2360,7 +2411,8 @@ input[placeholder]::placeholder {
   <div style="font-size:1.3rem; color:#096B68; font-weight:600;">SUBMIT SUCCESSFULLY</div>
 </div>
         <div class="form-title">Godown Agreement Entry Form</div>
-        <form>
+        <form method="post", enctype="multipart/form-data", action="{% url 'godown-create' %}">
+            {% csrf_token %}
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Zone</label>
@@ -2437,16 +2489,20 @@ input[placeholder]::placeholder {
         </form>
     </div>
     <!-- Place after the GODOWN AGREEMENT form -->
-     <div class="form-card" id="godown-edit-card" style="display:none;">
+<div class="form-card" id="godown-edit-card" style="display:none;">
     <div class="form-success-message" style="display:none;">
-        <!-- ...success SVG... -->
+        <svg class="tick-animate" width="60" height="60" viewBox="0 0 60 60" style="margin-bottom:18px; display:block;">
+            <circle cx="30" cy="30" r="28" fill="none" stroke="#27ae60" stroke-width="4" opacity="0.15"/>
+            <polyline points="18,32 27,41 43,23" fill="none" stroke="#27ae60" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
         <div style="font-size:1.3rem; color:#096B68; font-weight:600;">SUBMIT SUCCESSFULLY</div>
     </div>
     <div style="padding-top:15px; padding-bottom:32px;">
         <!-- Title -->
-        <div id="mpacs-edit-title" style="font-size:1.1rem; font-weight:600; color:#ffffff; text-align:center;">
+        <div id="godown-edit-title" style="font-size:1.1rem; font-weight:600; color:#ffffff; text-align:center;">
             EDITING: GODOWN AGREEMENT
         </div>
+        
         <!-- Stats Row -->
         <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 18px;">
             <div style="display: flex; align-items: center; gap: 7px; padding-left: 10px;">
@@ -2474,19 +2530,21 @@ input[placeholder]::placeholder {
                 </span>
             </div>
         </div>
+        
         <!-- Search Box -->
         <div style="padding: 15px 20px 0 20px; margin-bottom: 10px; margin-top: 20px;">
             <div style="position: relative; width: 100%;">
                 <input
+                    id="godown-search-input"
                     type="text"
-                    placeholder="SEARCH BY LOCATION"
+                    placeholder="SEARCH BY LOCATION, CONTRACTOR"
                     style="width: 100%; background: #FFEDDB; border: none; border-radius: 24px; padding: 12px 44px 12px 18px; font-size: 1rem; color: #000; outline: none; box-sizing: border-box; font-weight: 500;"
                 />
-                <span style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%) rotate(-20deg); color: #2C2C2C; font-size: 1.2rem; pointer-events: none;">
+                <span id="godown-search-icon" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%) rotate(-20deg); color: #2C2C2C; font-size: 1.2rem; pointer-events: none;">
                     <i class="fas fa-search"></i>
                 </span>
             </div>
-            <div id="mpacs-search-result"></div>
+            <div id="godown-search-result"></div>
         </div>
     </div>
 </div>
@@ -2782,7 +2840,8 @@ input[placeholder]::placeholder {
                 <div style="font-size:1.3rem; color:#096B68; font-weight:600;">SUBMIT SUCCESSFULLY</div>
             </div>
             <div class="form-title">RTA Entry Form</div>
-            <form>
+            <form method="post" enctype="multipart/form-data" action="{% url 'rta-create' %}">
+                {% csrf_token %}
                 <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Zone</label>
@@ -2861,14 +2920,18 @@ input[placeholder]::placeholder {
     <!-- Place after the RTA form -->
      <div class="form-card" id="rta-edit-card" style="display:none;">
     <div class="form-success-message" style="display:none;">
-        <!-- ...success SVG... -->
+        <svg class="tick-animate" width="60" height="60" viewBox="0 0 60 60" style="margin-bottom:18px; display:block;">
+            <circle cx="30" cy="30" r="28" fill="none" stroke="#27ae60" stroke-width="4" opacity="0.15"/>
+            <polyline points="18,32 27,41 43,23" fill="none" stroke="#27ae60" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
         <div style="font-size:1.3rem; color:#096B68; font-weight:600;">SUBMIT SUCCESSFULLY</div>
     </div>
     <div style="padding-top:15px; padding-bottom:32px;">
         <!-- Title -->
-        <div id="amc-edit-title" style="font-size:1.1rem; font-weight:600; color:#ffffff; text-align:center;">
+        <div id="rta-edit-title" style="font-size:1.1rem; font-weight:600; color:#ffffff; text-align:center;">
             EDITING: RTA AGREEMENT
         </div>
+        
         <!-- Stats Row -->
         <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 18px;">
             <div style="display: flex; align-items: center; gap: 7px; padding-left: 10px;">
@@ -2896,15 +2959,17 @@ input[placeholder]::placeholder {
                 </span>
             </div>
         </div>
+        
         <!-- Search Box -->
         <div style="padding: 15px 20px 0 20px; margin-bottom: 10px; margin-top: 20px;">
             <div style="position: relative; width: 100%;">
                 <input
+                    id="rta-search-input"
                     type="text"
-                    placeholder="SEARCH BY LOCATION"
+                    placeholder="SEARCH BY LOCATION, CONTRACTOR"
                     style="width: 100%; background: #FFEDDB; border: none; border-radius: 24px; padding: 12px 44px 12px 18px; font-size: 1rem; color: #000; outline: none; box-sizing: border-box; font-weight: 500;"
                 />
-                <span style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%) rotate(-20deg); color: #2C2C2C; font-size: 1.2rem; pointer-events: none;">
+                <span id="rta-search-icon" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%) rotate(-20deg); color: #2C2C2C; font-size: 1.2rem; pointer-events: none;">
                     <i class="fas fa-search"></i>
                 </span>
             </div>
@@ -3395,6 +3460,794 @@ function updateAgreementStats(type) {
             });
     }
 }
+
+// --- GODOWN AGREEMENT SEARCH/EDIT ---
+let godownSearchInput, godownSearchIcon, godownSearchResult;
+
+function parseGodownSearchInput(input) {
+    const parts = input.split(',');
+    const location = parts[0] ? parts[0].trim() : '';
+    const contractor = parts[1] ? parts[1].trim() : '';
+    return { location, contractor };
+}
+
+function searchGodownAgreement() {
+    const input = godownSearchInput.value.trim();
+    const { location, contractor } = parseGodownSearchInput(input);
+    
+    if (!location || !contractor) {
+        godownSearchResult.innerHTML = '<div style="margin:20px 0; color:#fff; text-align:center;">Please enter both location and contractor, separated by a comma.</div>';
+        return;
+    }
+    
+    fetch(`/godown/search/?location=${encodeURIComponent(location)}&contractor=${encodeURIComponent(contractor)}`)
+        .then(res => res.json())
+        .then(data => renderGodownResultCard(data.results))
+        .catch(() => {
+            godownSearchResult.innerHTML = '<div style="margin:20px 0; color:#fff; text-align:center;">Error fetching data.</div>';
+        });
+}
+
+function renderGodownResultCard(data) {
+    if (!data || data.length === 0) {
+        godownSearchResult.innerHTML = '<div style="margin:20px 0; color:#fff; text-align:center;">No results found (Either it is a complete document or you entered the wrong location/contractor)</div>';
+        return;
+    }
+    
+    const obj = data[0];
+    window.currentGodownId = obj.id;
+    
+    godownSearchResult.innerHTML = `
+        <div style="background: #DEBA9D; border-radius: 18px; padding: 28px; margin: 18px 0 0 0; color: #2C2C2C; font-size: 1rem; box-shadow: 0 2px 12px rgba(0,0,0,0.10); width: 100%; box-sizing: border-box;">
+            <div style="display: flex; font-weight: 700; gap: 24px; border-bottom: 1px solid #c9a98b; padding-bottom: 8px;">
+                <div style="flex:1;">LOCATION</div>
+                <div style="flex:1;">CONTRACTOR</div>
+                <div style="flex:1;">DOCUMENT STATUS</div>
+                <div style="flex:1;">MISSING DOCUMENT</div>
+            </div>
+            <div style="display: flex; gap: 24px; margin-top: 8px; margin-bottom: 24px;">
+                <div style="flex:1;">${obj.location}</div>
+                <div style="flex:1;">${obj.contractor}</div>
+                <div style="flex:1;">
+                    <select id="godown-edit-doc-status" style="padding: 6px 12px; border-radius: 8px; background: #DEBA9D; font-weight: 500;">
+                        <option value="INCOMPLETE" ${obj.document_status === 'INCOMPLETE' ? 'selected' : ''}>INCOMPLETE</option>
+                        <option value="COMPLETE" ${obj.document_status === 'COMPLETE' ? 'selected' : ''}>COMPLETE</option>
+                    </select>
+                </div>
+                <div style="flex:1;">
+                    <input id="godown-edit-missing-document" type="text" value="${obj.document_pending || ''}" style="width:90%;padding:6px 10px;border-radius:8px;border:1px solid #c9a98b;background:#fff;color:#333;font-size:1rem;">
+                </div>
+            </div>
+            <div style="display: flex; justify-content: center;">
+                <div style="border: 2px dashed #b48b5a; border-radius: 16px; padding: 18px 32px; background: #D5CEA3; min-width: 220px; text-align: center; display: flex; flex-direction: column; align-items: center;">
+                    <div style="font-weight:600; margin-bottom:6px;">DOCUMENT</div>
+                    ${
+                        obj.document_url
+                        ? `<span style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <a href="${obj.document_url}" target="_blank" style="color:#8a5c2b; text-decoration: none; pointer-events: none; cursor: default;" id="godown-doc-link">${obj.document_name}</a>
+                                <span style="cursor:pointer;" id="godown-doc-edit">
+                                    <i class="fas fa-edit" style="color:#8a5c2b; font-size:1.1rem;" title="View/Edit PDF"></i>
+                                </span>
+                           </span>
+                           <div style="margin-top:18px; padding-left:11px">
+                                <label for="godownInsertPdfInput" style="background:#A0C49D; color:#333; padding:10px 10px 10px 10px; border-radius:8px; cursor:pointer; font-weight:500;">
+                                    UPLOAD PDF
+                                    <input type="file" id="godownInsertPdfInput" accept="application/pdf" style="display:none;">
+                                </label>
+                                <span id="godownInsertPdfFilename" style="margin-left:10px; color:#8a5c2b; font-size:0.95rem;"></span>
+                            </div>
+                        `
+                        : `<span style="color:#b48b5a;">No document uploaded</span>`
+                    }
+                </div>
+            </div>
+            <div style="text-align:center; margin-top:24px;">
+                <button id="godown-edit-submit" style="background:#8A784E; color:#000; border:none; border-radius:8px; padding:10px 32px; font-size:1.1rem; cursor:pointer;">
+                    SUBMIT
+                </button>
+            </div>
+        </div>
+    `;
+    
+    setTimeout(() => {
+        // PDF preview logic
+        const editIcon = document.getElementById('godown-doc-edit');
+        if(editIcon) {
+            editIcon.addEventListener('click', function(){
+                const docLink = document.getElementById('godown-doc-link');
+                if(docLink && docLink.href) {
+                    openPdfInModal(docLink.href);
+                }
+            });
+        }
+
+        // File selection logic
+        const insertInput = document.getElementById('godownInsertPdfInput');
+        const insertFilename = document.getElementById('godownInsertPdfFilename');
+        let insertedPdfFile = null;
+
+        if (insertInput) {
+            insertInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file && file.type === 'application/pdf') {
+                    insertFilename.textContent = file.name;
+                    insertedPdfFile = file;
+                } else {
+                    insertFilename.textContent = '';
+                    insertedPdfFile = null;
+                    alert('Please select a valid PDF file.');
+                }
+            });
+        }
+
+        // Submit button logic
+        const submitBtn = document.getElementById('godown-edit-submit');
+        if (submitBtn) {
+            submitBtn.addEventListener('click', function() {
+                const statusSelect = document.getElementById('godown-edit-doc-status');
+                const godownId = window.currentGodownId;
+                const missingDocInput = document.getElementById('godown-edit-missing-document');
+                
+                if (!godownId) {
+                    alert('Godown Agreement ID not found.');
+                    return;
+                }
+                
+                if (!insertedPdfFile) {
+                    alert('Please select a PDF to insert.');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('document_status', statusSelect.value);
+                formData.append('insert_pdf', insertedPdfFile);
+                formData.append('pending_document', missingDocInput ? missingDocInput.value : '');
+
+                fetch(`/godown/edit-merge/${godownId}/`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const editCard = document.getElementById('godown-edit-card');
+                        const successMsg = editCard.querySelector('.form-success-message');
+                        if (successMsg) {
+                            successMsg.style.display = 'flex';
+                        }
+                        editCard.classList.add('success-active');
+                        setTimeout(() => {
+                            if (successMsg) successMsg.style.display = 'none';
+                            editCard.classList.remove('success-active');
+                            editCard.style.display = 'none';
+                            godownSearchResult.innerHTML = '';
+                            updateAgreementStats('godown');
+                        }, 2000);
+                    } else {
+                        alert('Error: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(err => {
+                    alert('Error: ' + err.message);
+                });
+            });
+        }
+    }, 0);
+}
+
+// Initialize Godown search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    godownSearchInput = document.getElementById('godown-search-input');
+    godownSearchIcon = document.getElementById('godown-search-icon');
+    godownSearchResult = document.getElementById('godown-search-result');
+    
+    if(godownSearchInput && godownSearchIcon) {
+        godownSearchInput.addEventListener('keydown', function(e) {
+            if(e.key === 'Enter') {
+                e.preventDefault();
+                searchGodownAgreement();
+            }
+        });
+        
+        godownSearchIcon.addEventListener('click', function() {
+            searchGodownAgreement();
+        });
+    }
+});
+// ----RTA AGREEMENT SEARCH/EDIT------
+let rtaSearchInput, rtaSearchIcon, rtaSearchResult;
+
+function parseRtaSearchInput(input) {
+    const parts = input.split(',');
+    const location = parts[0] ? parts[0].trim() : '';
+    const contractor = parts[1] ? parts[1].trim() : '';
+    return { location, contractor };
+}
+
+function searchRtaAgreement() {
+    const input = rtaSearchInput.value.trim();
+    const { location, contractor } = parseRtaSearchInput(input);
+    
+    if (!location || !contractor) {
+        rtaSearchResult.innerHTML = '<div style="margin:20px 0; color:#fff; text-align:center;">Please enter both location and contractor, separated by a comma.</div>';
+        return;
+    }
+    
+    fetch(`/rta/search/?location=${encodeURIComponent(location)}&contractor=${encodeURIComponent(contractor)}`)
+        .then(res => res.json())
+        .then(data => renderRtaResultCard(data.results))
+        .catch(() => {
+            rtaSearchResult.innerHTML = '<div style="margin:20px 0; color:#fff; text-align:center;">Error fetching data.</div>';
+        });
+}
+
+function renderRtaResultCard(data) {
+    if (!data || data.length === 0) {
+        rtaSearchResult.innerHTML = '<div style="margin:20px 0; color:#fff; text-align:center;">No results found (Either it is a complete document or you entered the wrong location/contractor)</div>';
+        return;
+    }
+    
+    const obj = data[0];
+    window.currentRtaId = obj.id;
+    
+    rtaSearchResult.innerHTML = `
+        <div style="background: #DEBA9D; border-radius: 18px; padding: 28px; margin: 18px 0 0 0; color: #2C2C2C; font-size: 1rem; box-shadow: 0 2px 12px rgba(0,0,0,0.10); width: 100%; box-sizing: border-box;">
+            <div style="display: flex; font-weight: 700; gap: 24px; border-bottom: 1px solid #c9a98b; padding-bottom: 8px;">
+                <div style="flex:1;">LOCATION</div>
+                <div style="flex:1;">CONTRACTOR</div>
+                <div style="flex:1;">DOCUMENT STATUS</div>
+                <div style="flex:1;">MISSING DOCUMENT</div>
+            </div>
+            <div style="display: flex; gap: 24px; margin-top: 8px; margin-bottom: 24px;">
+                <div style="flex:1;">${obj.location}</div>
+                <div style="flex:1;">${obj.contractor}</div>
+                <div style="flex:1;">
+                    <select id="rta-edit-doc-status" style="padding: 6px 12px; border-radius: 8px; background: #DEBA9D; font-weight: 500;">
+                        <option value="INCOMPLETE" ${obj.document_status === 'INCOMPLETE' ? 'selected' : ''}>INCOMPLETE</option>
+                        <option value="COMPLETE" ${obj.document_status === 'COMPLETE' ? 'selected' : ''}>COMPLETE</option>
+                    </select>
+                </div>
+                <div style="flex:1;">
+                    <input id="rta-edit-missing-document" type="text" value="${obj.document_pending || ''}" style="width:90%;padding:6px 10px;border-radius:8px;border:1px solid #c9a98b;background:#fff;color:#333;font-size:1rem;">
+                </div>
+            </div>
+            <div style="display: flex; justify-content: center;">
+                <div style="border: 2px dashed #b48b5a; border-radius: 16px; padding: 18px 32px; background: #D5CEA3; min-width: 220px; text-align: center; display: flex; flex-direction: column; align-items: center;">
+                    <div style="font-weight:600; margin-bottom:6px;">DOCUMENT</div>
+                    ${
+                        obj.document_url
+                        ? `<span style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <a href="${obj.document_url}" target="_blank" style="color:#8a5c2b; text-decoration: none; pointer-events: none; cursor: default;" id="rta-doc-link">${obj.document_name}</a>
+                                <span style="cursor:pointer;" id="rta-doc-edit">
+                                    <i class="fas fa-edit" style="color:#8a5c2b; font-size:1.1rem;" title="View/Edit PDF"></i>
+                                </span>
+                           </span>
+                           <div style="margin-top:18px; padding-left:11px">
+                                <label for="rtaInsertPdfInput" style="background:#A0C49D; color:#333; padding:10px 10px 10px 10px; border-radius:8px; cursor:pointer; font-weight:500;">
+                                    UPLOAD PDF
+                                    <input type="file" id="rtaInsertPdfInput" accept="application/pdf" style="display:none;">
+                                </label>
+                                <span id="rtaInsertPdfFilename" style="margin-left:10px; color:#8a5c2b; font-size:0.95rem;"></span>
+                            </div>
+                        `
+                        : `<span style="color:#b48b5a;">No document uploaded</span>`
+                    }
+                </div>
+            </div>
+            <div style="text-align:center; margin-top:24px;">
+                <button id="rta-edit-submit" style="background:#8A784E; color:#000; border:none; border-radius:8px; padding:10px 32px; font-size:1.1rem; cursor:pointer;">
+                    SUBMIT
+                </button>
+            </div>
+        </div>
+    `;
+    
+    setTimeout(() => {
+        // PDF preview logic
+        const editIcon = document.getElementById('rta-doc-edit');
+        if(editIcon) {
+            editIcon.addEventListener('click', function(){
+                const docLink = document.getElementById('rta-doc-link');
+                if(docLink && docLink.href) {
+                    openPdfInModal(docLink.href);
+                }
+            });
+        }
+
+        // File selection logic
+        const insertInput = document.getElementById('rtaInsertPdfInput');
+        const insertFilename = document.getElementById('rtaInsertPdfFilename');
+        let insertedPdfFile = null;
+
+        if (insertInput) {
+            insertInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file && file.type === 'application/pdf') {
+                    insertFilename.textContent = file.name;
+                    insertedPdfFile = file;
+                } else {
+                    insertFilename.textContent = '';
+                    insertedPdfFile = null;
+                    alert('Please select a valid PDF file.');
+                }
+            });
+        }
+
+        // Submit button logic
+        const submitBtn = document.getElementById('rta-edit-submit');
+        if (submitBtn) {
+            submitBtn.addEventListener('click', function() {
+                const statusSelect = document.getElementById('rta-edit-doc-status');
+                const rtaId = window.currentRtaId;
+                const missingDocInput = document.getElementById('rta-edit-missing-document');
+                
+                if (!rtaId) {
+                    alert('RTA Agreement ID not found.');
+                    return;
+                }
+                
+                if (!insertedPdfFile) {
+                    alert('Please select a PDF to insert.');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('document_status', statusSelect.value);
+                formData.append('insert_pdf', insertedPdfFile);
+                formData.append('pending_document', missingDocInput ? missingDocInput.value : '');
+
+                fetch(`/rta/edit-merge/${rtaId}/`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const editCard = document.getElementById('rta-edit-card');
+                        const successMsg = editCard.querySelector('.form-success-message');
+                        if (successMsg) {
+                            successMsg.style.display = 'flex';
+                        }
+                        editCard.classList.add('success-active');
+                        setTimeout(() => {
+                            if (successMsg) successMsg.style.display = 'none';
+                            editCard.classList.remove('success-active');
+                            editCard.style.display = 'none';
+                            rtaSearchResult.innerHTML = '';
+                            updateAgreementStats('rta');
+                        }, 2000);
+                    } else {
+                        alert('Error: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(err => {
+                    alert('Error: ' + err.message);
+                });
+            });
+        }
+    }, 0);
+}
+
+// Initialize RTA search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    rtaSearchInput = document.getElementById('rta-search-input');
+    rtaSearchIcon = document.getElementById('rta-search-icon');
+    rtaSearchResult = document.getElementById('rta-search-result');
+    
+    if(rtaSearchInput && rtaSearchIcon) {
+        rtaSearchInput.addEventListener('keydown', function(e) {
+            if(e.key === 'Enter') {
+                e.preventDefault();
+                searchRtaAgreement();
+            }
+        });
+        
+        rtaSearchIcon.addEventListener('click', function() {
+            searchRtaAgreement();
+        });
+    }
+});
+
+
+// ----MPACS AGREEMENT SEARCH/EDIT-----
+let mpacsSearchInput, mpacsSearchIcon, mpacsSearchResult;
+
+function parseMpacsSearchInput(input) {
+    const parts = input.split(',');
+    const location = parts[0] ? parts[0].trim() : '';
+    const contractor = parts[1] ? parts[1].trim() : '';
+    return { location, contractor };
+}
+
+function searchMpacsAgreement() {
+    const input = mpacsSearchInput.value.trim();
+    const { location, contractor } = parseMpacsSearchInput(input);
+    
+    if (!location || !contractor) {
+        mpacsSearchResult.innerHTML = '<div style="margin:20px 0; color:#fff; text-align:center;">Please enter both location and contractor, separated by a comma.</div>';
+        return;
+    }
+    
+    fetch(`/mpacs/search/?location=${encodeURIComponent(location)}&contractor=${encodeURIComponent(contractor)}`)
+        .then(res => res.json())
+        .then(data => renderMpacsResultCard(data.results))
+        .catch(() => {
+            mpacsSearchResult.innerHTML = '<div style="margin:20px 0; color:#fff; text-align:center;">Error fetching data.</div>';
+        });
+}
+
+function renderMpacsResultCard(data) {
+    if (!data || data.length === 0) {
+        mpacsSearchResult.innerHTML = '<div style="margin:20px 0; color:#fff; text-align:center;">No results found (Either it is a complete document or you entered the wrong location/contractor)</div>';
+        return;
+    }
+    
+    const obj = data[0];
+    window.currentMpacsId = obj.id;
+    
+    mpacsSearchResult.innerHTML = `
+        <div style="background: #DEBA9D; border-radius: 18px; padding: 28px; margin: 18px 0 0 0; color: #2C2C2C; font-size: 1rem; box-shadow: 0 2px 12px rgba(0,0,0,0.10); width: 100%; box-sizing: border-box;">
+            <div style="display: flex; font-weight: 700; gap: 24px; border-bottom: 1px solid #c9a98b; padding-bottom: 8px;">
+                <div style="flex:1;">LOCATION</div>
+                <div style="flex:1;">CONTRACTOR</div>
+                <div style="flex:1;">DOCUMENT STATUS</div>
+                <div style="flex:1;">MISSING DOCUMENT</div>
+            </div>
+            <div style="display: flex; gap: 24px; margin-top: 8px; margin-bottom: 24px;">
+                <div style="flex:1;">${obj.location}</div>
+                <div style="flex:1;">${obj.contractor}</div>
+                <div style="flex:1;">
+                    <select id="mpacs-edit-doc-status" style="padding: 6px 12px; border-radius: 8px; background: #DEBA9D; font-weight: 500;">
+                        <option value="INCOMPLETE" ${obj.document_status === 'INCOMPLETE' ? 'selected' : ''}>INCOMPLETE</option>
+                        <option value="COMPLETE" ${obj.document_status === 'COMPLETE' ? 'selected' : ''}>COMPLETE</option>
+                    </select>
+                </div>
+                <div style="flex:1;">
+                    <input id="mpacs-edit-missing-document" type="text" value="${obj.document_pending || ''}" style="width:90%;padding:6px 10px;border-radius:8px;border:1px solid #c9a98b;background:#fff;color:#333;font-size:1rem;">
+                </div>
+            </div>
+            <div style="display: flex; justify-content: center;">
+                <div style="border: 2px dashed #b48b5a; border-radius: 16px; padding: 18px 32px; background: #D5CEA3; min-width: 220px; text-align: center; display: flex; flex-direction: column; align-items: center;">
+                    <div style="font-weight:600; margin-bottom:6px;">DOCUMENT</div>
+                    ${
+                        obj.document_url
+                        ? `<span style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <a href="${obj.document_url}" target="_blank" style="color:#8a5c2b; text-decoration: none; pointer-events: none; cursor: default;" id="mpacs-doc-link">${obj.document_name}</a>
+                                <span style="cursor:pointer;" id="mpacs-doc-edit">
+                                    <i class="fas fa-edit" style="color:#8a5c2b; font-size:1.1rem;" title="View/Edit PDF"></i>
+                                </span>
+                           </span>
+                           <div style="margin-top:18px; padding-left:11px">
+                                <label for="mpacsInsertPdfInput" style="background:#A0C49D; color:#333; padding:10px 10px 10px 10px; border-radius:8px; cursor:pointer; font-weight:500;">
+                                    UPLOAD PDF
+                                    <input type="file" id="mpacsInsertPdfInput" accept="application/pdf" style="display:none;">
+                                </label>
+                                <span id="mpacsInsertPdfFilename" style="margin-left:10px; color:#8a5c2b; font-size:0.95rem;"></span>
+                            </div>
+                        `
+                        : `<span style="color:#b48b5a;">No document uploaded</span>`
+                    }
+                </div>
+            </div>
+            <div style="text-align:center; margin-top:24px;">
+                <button id="mpacs-edit-submit" style="background:#8A784E; color:#000; border:none; border-radius:8px; padding:10px 32px; font-size:1.1rem; cursor:pointer;">
+                    SUBMIT
+                </button>
+            </div>
+        </div>
+    `;
+    
+    setTimeout(() => {
+        // PDF preview logic
+        const editIcon = document.getElementById('mpacs-doc-edit');
+        if(editIcon) {
+            editIcon.addEventListener('click', function(){
+                const docLink = document.getElementById('mpacs-doc-link');
+                if(docLink && docLink.href) {
+                    openPdfInModal(docLink.href);
+                }
+            });
+        }
+
+        // File selection logic
+        const insertInput = document.getElementById('mpacsInsertPdfInput');
+        const insertFilename = document.getElementById('mpacsInsertPdfFilename');
+        let insertedPdfFile = null;
+
+        if (insertInput) {
+            insertInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file && file.type === 'application/pdf') {
+                    insertFilename.textContent = file.name;
+                    insertedPdfFile = file;
+                } else {
+                    insertFilename.textContent = '';
+                    insertedPdfFile = null;
+                    alert('Please select a valid PDF file.');
+                }
+            });
+        }
+
+        // Submit button logic
+        const submitBtn = document.getElementById('mpacs-edit-submit');
+        if (submitBtn) {
+            submitBtn.addEventListener('click', function() {
+                const statusSelect = document.getElementById('mpacs-edit-doc-status');
+                const mpacsId = window.currentMpacsId;
+                const missingDocInput = document.getElementById('mpacs-edit-missing-document');
+                
+                if (!mpacsId) {
+                    alert('MPACS Agreement ID not found.');
+                    return;
+                }
+                
+                if (!insertedPdfFile) {
+                    alert('Please select a PDF to insert.');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('document_status', statusSelect.value);
+                formData.append('insert_pdf', insertedPdfFile);
+                formData.append('pending_document', missingDocInput ? missingDocInput.value : '');
+
+                fetch(`/mpacs/edit-merge/${mpacsId}/`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const editCard = document.getElementById('mpacs-edit-card');
+                        const successMsg = editCard.querySelector('.form-success-message');
+                        if (successMsg) {
+                            successMsg.style.display = 'flex';
+                        }
+                        editCard.classList.add('success-active');
+                        setTimeout(() => {
+                            if (successMsg) successMsg.style.display = 'none';
+                            editCard.classList.remove('success-active');
+                            editCard.style.display = 'none';
+                            mpacsSearchResult.innerHTML = '';
+                            updateAgreementStats('mpacs');
+                        }, 2000);
+                    } else {
+                        alert('Error: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(err => {
+                    alert('Error: ' + err.message);
+                });
+            });
+        }
+    }, 0);
+}
+
+// Initialize MPACS search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    mpacsSearchInput = document.getElementById('mpacs-search-input');
+    mpacsSearchIcon = document.getElementById('mpacs-search-icon');
+    mpacsSearchResult = document.getElementById('mpacs-search-result');
+    
+    if(mpacsSearchInput && mpacsSearchIcon) {
+        mpacsSearchInput.addEventListener('keydown', function(e) {
+            if(e.key === 'Enter') {
+                e.preventDefault();
+                searchMpacsAgreement();
+            }
+        });
+        
+        mpacsSearchIcon.addEventListener('click', function() {
+            searchMpacsAgreement();
+        });
+    }
+});
+
+// --- MCC AGREEMENT SEARCH/EDIT ---
+let mccSearchInput, mccSearchIcon, mccSearchResult;
+
+function parseMccSearchInput(input) {
+    const parts = input.split(',');
+    const location = parts[0] ? parts[0].trim() : '';
+    const contractor = parts[1] ? parts[1].trim() : '';
+    return { location, contractor };
+}
+
+function searchMccAgreement() {
+    const input = mccSearchInput.value.trim();
+    const { location, contractor } = parseMccSearchInput(input);
+    
+    if (!location || !contractor) {
+        mccSearchResult.innerHTML = '<div style="margin:20px 0; color:#fff; text-align:center;">Please enter both location and contractor, separated by a comma.</div>';
+        return;
+    }
+    
+    fetch(`/mcc/search/?location=${encodeURIComponent(location)}&contractor=${encodeURIComponent(contractor)}`)
+        .then(res => res.json())
+        .then(data => renderMccResultCard(data.results))
+        .catch(() => {
+            mccSearchResult.innerHTML = '<div style="margin:20px 0; color:#fff; text-align:center;">Error fetching data.</div>';
+        });
+}
+
+function renderMccResultCard(data) {
+    if (!data || data.length === 0) {
+        mccSearchResult.innerHTML = '<div style="margin:20px 0; color:#fff; text-align:center;">No results found (Either it is a complete document or you entered the wrong location/contractor)</div>';
+        return;
+    }
+    
+    const obj = data[0];
+    window.currentMccId = obj.id;
+    
+    mccSearchResult.innerHTML = `
+        <div style="background: #DEBA9D; border-radius: 18px; padding: 28px; margin: 18px 0 0 0; color: #2C2C2C; font-size: 1rem; box-shadow: 0 2px 12px rgba(0,0,0,0.10); width: 100%; box-sizing: border-box;">
+            <div style="display: flex; font-weight: 700; gap: 24px; border-bottom: 1px solid #c9a98b; padding-bottom: 8px;">
+                <div style="flex:1;">LOCATION</div>
+                <div style="flex:1;">CONTRACTOR</div>
+                <div style="flex:1;">DOCUMENT STATUS</div>
+                <div style="flex:1;">MISSING DOCUMENT</div>
+            </div>
+            <div style="display: flex; gap: 24px; margin-top: 8px; margin-bottom: 24px;">
+                <div style="flex:1;">${obj.location}</div>
+                <div style="flex:1;">${obj.contractor}</div>
+                <div style="flex:1;">
+                    <select id="mcc-edit-doc-status" style="padding: 6px 12px; border-radius: 8px; background: #DEBA9D; font-weight: 500;">
+                        <option value="INCOMPLETE" ${obj.document_status === 'INCOMPLETE' ? 'selected' : ''}>INCOMPLETE</option>
+                        <option value="COMPLETE" ${obj.document_status === 'COMPLETE' ? 'selected' : ''}>COMPLETE</option>
+                    </select>
+                </div>
+                <div style="flex:1;">
+                    <input id="mcc-edit-missing-document" type="text" value="${obj.document_pending || ''}" style="width:90%;padding:6px 10px;border-radius:8px;border:1px solid #c9a98b;background:#fff;color:#333;font-size:1rem;">
+                </div>
+            </div>
+            <div style="display: flex; justify-content: center;">
+                <div style="border: 2px dashed #b48b5a; border-radius: 16px; padding: 18px 32px; background: #D5CEA3; min-width: 220px; text-align: center; display: flex; flex-direction: column; align-items: center;">
+                    <div style="font-weight:600; margin-bottom:6px;">DOCUMENT</div>
+                    ${
+                        obj.document_url
+                        ? `<span style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <a href="${obj.document_url}" target="_blank" style="color:#8a5c2b; text-decoration: none; pointer-events: none; cursor: default;" id="mcc-doc-link">${obj.document_name}</a>
+                                <span style="cursor:pointer;" id="mcc-doc-edit">
+                                    <i class="fas fa-edit" style="color:#8a5c2b; font-size:1.1rem;" title="View/Edit PDF"></i>
+                                </span>
+                           </span>
+                           <div style="margin-top:18px; padding-left:11px">
+                                <label for="mccInsertPdfInput" style="background:#A0C49D; color:#333; padding:10px 10px 10px 10px; border-radius:8px; cursor:pointer; font-weight:500;">
+                                    UPLOAD PDF
+                                    <input type="file" id="mccInsertPdfInput" accept="application/pdf" style="display:none;">
+                                </label>
+                                <span id="mccInsertPdfFilename" style="margin-left:10px; color:#8a5c2b; font-size:0.95rem;"></span>
+                            </div>
+                        `
+                        : `<span style="color:#b48b5a;">No document uploaded</span>`
+                    }
+                </div>
+            </div>
+            <div style="text-align:center; margin-top:24px;">
+                <button id="mcc-edit-submit" style="background:#8A784E; color:#000; border:none; border-radius:8px; padding:10px 32px; font-size:1.1rem; cursor:pointer;">
+                    SUBMIT
+                </button>
+            </div>
+        </div>
+    `;
+    
+    setTimeout(() => {
+        // PDF preview logic
+        const editIcon = document.getElementById('mcc-doc-edit');
+        if(editIcon) {
+            editIcon.addEventListener('click', function(){
+                const docLink = document.getElementById('mcc-doc-link');
+                if(docLink && docLink.href) {
+                    openPdfInModal(docLink.href);
+                }
+            });
+        }
+
+        // File selection logic
+        const insertInput = document.getElementById('mccInsertPdfInput');
+        const insertFilename = document.getElementById('mccInsertPdfFilename');
+        let insertedPdfFile = null;
+
+        if (insertInput) {
+            insertInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file && file.type === 'application/pdf') {
+                    insertFilename.textContent = file.name;
+                    insertedPdfFile = file;
+                } else {
+                    insertFilename.textContent = '';
+                    insertedPdfFile = null;
+                    alert('Please select a valid PDF file.');
+                }
+            });
+        }
+
+        // Submit button logic
+        const submitBtn = document.getElementById('mcc-edit-submit');
+        if (submitBtn) {
+            submitBtn.addEventListener('click', function() {
+                const statusSelect = document.getElementById('mcc-edit-doc-status');
+                const mccId = window.currentMccId;
+                const missingDocInput = document.getElementById('mcc-edit-missing-document');
+                
+                if (!mccId) {
+                    alert('MCC Agreement ID not found.');
+                    return;
+                }
+                
+                if (!insertedPdfFile) {
+                    alert('Please select a PDF to insert.');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('document_status', statusSelect.value);
+                formData.append('insert_pdf', insertedPdfFile);
+                formData.append('pending_document', missingDocInput ? missingDocInput.value : '');
+
+                fetch(`/mcc/edit-merge/${mccId}/`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const editCard = document.getElementById('mcc-edit-card');
+                        const successMsg = editCard.querySelector('.form-success-message');
+                        if (successMsg) {
+                            successMsg.style.display = 'flex';
+                        }
+                        editCard.classList.add('success-active');
+                        setTimeout(() => {
+                            if (successMsg) successMsg.style.display = 'none';
+                            editCard.classList.remove('success-active');
+                            editCard.style.display = 'none';
+                            mccSearchResult.innerHTML = '';
+                            updateAgreementStats('mcc');
+                        }, 2000);
+                    } else {
+                        alert('Error: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(err => {
+                    alert('Error: ' + err.message);
+                });
+            });
+        }
+    }, 0);
+}
+
+// Initialize MCC search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    mccSearchInput = document.getElementById('mcc-search-input');
+    mccSearchIcon = document.getElementById('mcc-search-icon');
+    mccSearchResult = document.getElementById('mcc-search-result');
+    
+    if(mccSearchInput && mccSearchIcon) {
+        mccSearchInput.addEventListener('keydown', function(e) {
+            if(e.key === 'Enter') {
+                e.preventDefault();
+                searchMccAgreement();
+            }
+        });
+        
+        mccSearchIcon.addEventListener('click', function() {
+            searchMccAgreement();
+        });
+    }
+});
 
 //DISTRIBUTER AGREEMENT EDIT AND SEARCH
 let distributerSearchInput, distributerSearchIcon, distributerSearchResult;
@@ -5271,5 +6124,28 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('editSelectionPrompt').style.display = 'block';
     }
 });
+
+// HARD REFRESH FUCNTIONALITY 
+    document.getElementById('refreshIcon').addEventListener('click', function() {
+        window.location.href = window.location.href.split('?')[0] + '?hard_refresh=' + Date.now(); 
+    });
+
+    // Tooltip hover effects remain the same
+    const refreshIcon = document.getElementById('refreshIcon');
+    refreshIcon.addEventListener('mouseenter', function() {
+        this.querySelector('.tooltip').style.opacity = '1';
+        this.style.transform = 'rotate(360deg)';
+    });
+    refreshIcon.addEventListener('mouseleave', function() {
+        this.querySelector('.tooltip').style.opacity = '0';
+        this.style.transform = 'rotate(0deg)';
+    });
+ // Smooth scroll to top function
+    function scrollToTop() {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'  // Makes the scroll smooth instead of instant
+        });
+    }
 </script>
 {% endblock %}
